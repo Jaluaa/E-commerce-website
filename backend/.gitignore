@@ -1,0 +1,33 @@
+# Binaries and executables
+# Compiled templates, logs, hashes
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+main
+backend
+
+# Dependency directories
+# (Go handles dependencies via go.mod/go.sum, vendor directory is optional)
+# vendor/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS-specific files
+.DS_Store
+Thumbs.db
