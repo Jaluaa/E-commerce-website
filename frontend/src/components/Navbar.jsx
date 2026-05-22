@@ -2,10 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
+import { useWishlist } from '../contexts/WishlistContext';
 
 function Navbar() {
   const { user, logout } = useAuth();
   const { cartItems } = useCart();
+  const { wishlistItems } = useWishlist();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -13,6 +15,7 @@ function Navbar() {
   const location = useLocation();
 
   const cartCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  const wishlistCount = wishlistItems.length;
 
   useEffect(() => { setSidebarOpen(false); }, [location]);
 
@@ -88,7 +91,15 @@ function Navbar() {
 
         <div style={{ marginBottom: '1.5rem' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>Navigation</p>
-          {[{ to: '/', label: '🏠 Home' }, { to: '/products', label: '🛍️ All Products' }, { to: '/cart', label: `🛒 Cart${cartCount > 0 ? ` (${cartCount})` : ''}` }].map(link => (
+          {[
+            { to: '/', label: '🏠 Home' },
+            { to: '/products', label: '🛍️ All Products' },
+            { to: '/cart', label: `🛒 Cart${cartCount > 0 ? ` (${cartCount})` : ''}` },
+            ...(user ? [
+              { to: '/wishlist', label: `❤️ Wishlist${wishlistCount > 0 ? ` (${wishlistCount})` : ''}` },
+              { to: '/orders', label: '📦 My Orders' }
+            ] : [])
+          ].map(link => (
             <Link key={link.to} to={link.to} style={{ display: 'block', padding: '0.65rem 0.75rem', borderRadius: '0.5rem', color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '0.25rem', textDecoration: 'none' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.07)'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
@@ -144,6 +155,22 @@ function Navbar() {
                 <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.9rem' }}>🔍</span>
               </div>
             </form>
+
+            {/* Wishlist Link in Topbar */}
+            {user && (
+              <Link to="/wishlist" style={{ position: 'relative', display: 'flex', alignItems: 'center', color: '#cbd5e1', fontSize: '1.4rem', textDecoration: 'none', flexShrink: 0, marginRight: '0.25rem' }}>
+                ❤️
+                {wishlistCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-8px', right: '-8px',
+                    background: 'var(--danger-color)', color: 'white',
+                    borderRadius: '50%', width: '20px', height: '20px',
+                    fontSize: '0.7rem', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>{wishlistCount}</span>
+                )}
+              </Link>
+            )}
 
             {/* Cart */}
             <Link to="/cart" style={{ position: 'relative', display: 'flex', alignItems: 'center', color: '#cbd5e1', fontSize: '1.4rem', textDecoration: 'none', flexShrink: 0 }}>

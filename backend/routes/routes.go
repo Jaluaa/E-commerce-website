@@ -24,6 +24,11 @@ func SetupRoutes(r *gin.Engine) {
 	api.POST("/cart", middleware.AuthRequired(), controllers.AddToCart)
 	api.DELETE("/cart/:productId", middleware.AuthRequired(), controllers.RemoveFromCart)
 
+	// Wishlist (Protected)
+	api.GET("/wishlist", middleware.AuthRequired(), controllers.GetWishlist)
+	api.POST("/wishlist", middleware.AuthRequired(), controllers.AddToWishlist)
+	api.DELETE("/wishlist/:productId", middleware.AuthRequired(), controllers.RemoveFromWishlist)
+
 	// Orders (Protected)
 	api.GET("/orders", middleware.AuthRequired(), controllers.GetOrders)
 	api.POST("/orders/checkout", middleware.AuthRequired(), controllers.Checkout)

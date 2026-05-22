@@ -30,15 +30,8 @@ function Cart() {
     if (cartItems.length > 0) fetchProductDetails();
   }, [cartItems]);
 
-  const handleCheckout = async () => {
-    try {
-      await api.post('/orders/checkout');
-      alert("Order placed successfully!");
-      clearCart();
-      navigate('/orders'); // if an order page exists, else home
-    } catch (error) {
-      alert(error.response?.data?.error || "Checkout failed");
-    }
+  const handleCheckout = () => {
+    navigate('/checkout');
   };
 
   if (!user) return <div className="container">Please <Link to="/login">login</Link> to view cart.</div>;

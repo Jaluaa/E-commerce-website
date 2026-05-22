@@ -15,6 +15,21 @@ func Checkout(c *gin.Context) {
 	userIDStr := c.GetString("userID")
 	userObjID, _ := primitive.ObjectIDFromHex(userIDStr)
 
+	var input struct {
+		ShippingAddress models.ShippingAddress `json:"shippingAddress"`
+		PaymentMethod   string                 `json:"paymentMethod"`
+	}
+
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid shipping or payment information"})
+		return
+	}
+
+	if input.ShippingAddress.FullName == "" || input.ShippingAddress.Address == "" || input.ShippingAddress.City == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Full name, address, and city are required"})
+		return
+	}
+
 	// Fetch user's cart
 	cartColl := getCollection("carts")
 	var cart models.Cart
@@ -59,11 +74,13 @@ func Checkout(c *gin.Context) {
 	}
 
 	order := models.Order{
-		UserID:    userObjID,
-		Items:     orderItems,
-		Total:     total,
-		Status:    "completed",
-		CreatedAt: time.Now(),
+		UserID:          userObjID,
+		Items:           orderItems,
+		Total:           total,
+		ShippingAddress: input.ShippingAddress,
+		PaymentMethod:   input.PaymentMethod,
+		Status:          "completed",
+		CreatedAt:       time.Now(),
 	}
 
 	orderColl := getCollection("orders")
