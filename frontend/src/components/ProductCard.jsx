@@ -84,7 +84,7 @@ function ProductCard({ product }) {
         {/* Bottom Panel */}
         <div className="mt-4 flex items-center justify-between pt-3 border-t border-white/5">
           <span className="text-lg font-extrabold text-white">
-            ${product.price.toFixed(2)}
+            ₹{product.price.toFixed(2)}
           </span>
           
           <button

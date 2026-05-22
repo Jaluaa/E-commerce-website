@@ -274,7 +274,7 @@ function AdminDashboard() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {[
-                    { label: 'Total Revenue', value: `$${stats.totalRevenue.toFixed(2)}`, desc: 'Aggregated lifetime product sales', color: 'from-emerald-400 to-teal-400', glow: 'shadow-emerald-500/10' },
+                    { label: 'Total Revenue', value: `₹${stats.totalRevenue.toFixed(2)}`, desc: 'Aggregated lifetime product sales', color: 'from-emerald-400 to-teal-400', glow: 'shadow-emerald-500/10' },
                     { label: 'Total Orders', value: stats.totalOrders, desc: 'Successful database checkout logs', color: 'from-blue-400 to-indigo-400', glow: 'shadow-blue-500/10' },
                     { label: 'Products in DB', value: stats.totalProducts, desc: 'Total catalog stock items in MongoDB', color: 'from-amber-400 to-orange-400', glow: 'shadow-amber-500/10' },
                     { label: 'Registered Users', value: stats.totalUsers, desc: 'Verified and unverified customer logons', color: 'from-purple-400 to-pink-400', glow: 'shadow-purple-500/10' }
@@ -314,7 +314,7 @@ function AdminDashboard() {
                                 <tr key={p._id} className="border-b border-white/5 hover:bg-white/5">
                                   <td className="py-2.5 font-medium text-slate-200">{p.name}</td>
                                   <td className="py-2.5 text-slate-400">{p.fandom || 'Generic'}</td>
-                                  <td className="py-2.5 text-right text-brand-primary font-bold">${p.price.toFixed(2)}</td>
+                                  <td className="py-2.5 text-right text-brand-primary font-bold">₹{p.price.toFixed(2)}</td>
                                   <td className="py-2.5 text-right font-semibold">
                                     <span className={p.stockQuantity <= 10 ? 'text-red-400' : 'text-slate-200'}>
                                       {p.stockQuantity} qty
@@ -397,7 +397,7 @@ function AdminDashboard() {
                             </td>
                             <td className="py-3 text-slate-300 font-medium">{p.fandom || 'Generic'}</td>
                             <td className="py-3 text-slate-400 font-medium">{p.category || 'Uncategorized'}</td>
-                            <td className="py-3 text-right text-brand-primary font-bold text-xs">${p.price.toFixed(2)}</td>
+                            <td className="py-3 text-right text-brand-primary font-bold text-xs">₹{p.price.toFixed(2)}</td>
                             <td className="py-3 text-right font-semibold">
                               <span className={p.stockQuantity <= 10 ? 'text-red-400' : 'text-slate-200'}>
                                 {p.stockQuantity} qty
@@ -478,7 +478,7 @@ function AdminDashboard() {
                                 {itemsCount} items
                               </td>
                               <td className="py-3.5 text-right font-bold text-brand-primary text-xs">
-                                ${o.total.toFixed(2)}
+                                ₹{o.total.toFixed(2)}
                               </td>
                               <td className="py-3.5 text-center">
                                 <select 
@@ -613,7 +613,7 @@ function AdminDashboard() {
                   {/* Price */}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                      Price ($) <span className="text-red-500">*</span>
+                      Price (₹) <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="number"

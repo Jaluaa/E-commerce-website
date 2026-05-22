@@ -3,6 +3,7 @@ import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 
 function Checkout() {
   const { cartItems, clearCart, getCartTotal } = useCart();
@@ -11,6 +12,8 @@ function Checkout() {
   const [searchParams] = useSearchParams();
   const discountParam = searchParams.get('discount');
   const discountPercent = discountParam ? parseInt(discountParam, 10) : 0;
+
+  const { showToast } = useToast();
 
   // Multi-step state: 'shipping' | 'payment' | 'submitting' | 'success'
   const [checkoutStep, setCheckoutStep] = useState('shipping');
@@ -22,11 +25,11 @@ function Checkout() {
     address: '',
     city: '',
     zip: '',
-    country: 'USA',
+    country: 'India',
     phone: ''
   });
 
-  const [paymentMethod, setPaymentMethod] = useState('credit_card'); // 'credit_card' | 'paypal' | 'cod'
+  const [paymentMethod, setPaymentMethod] = useState('razorpay'); // 'razorpay' | 'credit_card' | 'paypal' | 'cod'
 
   // Credit Card Interactive Widget states
   const [cardDetails, setCardDetails] = useState({
@@ -39,6 +42,25 @@ function Checkout() {
   const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [errors, setErrors] = useState({});
   const [placedOrderId, setPlacedOrderId] = useState('');
+
+  // CVV Card-Flipping Anim Methods
+  const handleCvvFocus = () => setIsCardFlipped(true);
+  const handleCvvBlur = () => setIsCardFlipped(false);
+
+  // Dynamic Razorpay SDK Loader
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  // Mock overlay controls
+  const [showMockModal, setShowMockModal] = useState(false);
+  const [mockOrderData, setMockOrderData] = useState(null);
 
   // Sync logged-in user email
   useEffect(() => {
@@ -66,10 +88,10 @@ function Checkout() {
     );
   }
 
-  // Calculate receipt totals
+  // Calculate receipt totals in natively scaled INR (free shipping over ₹4000, flat ₹400 shipping below)
   const subtotal = getCartTotal();
   const discountAmount = (subtotal * discountPercent) / 100;
-  const shippingCost = (subtotal - discountAmount) > 50 || (subtotal - discountAmount) === 0 ? 0 : 5.00;
+  const shippingCost = (subtotal - discountAmount) > 4000 || (subtotal - discountAmount) === 0 ? 0 : 400.00;
   const tax = (subtotal - discountAmount) * 0.08;
   const orderTotal = subtotal - discountAmount + shippingCost + tax;
 
@@ -133,7 +155,148 @@ function Checkout() {
     }
   };
 
+  // Save order details to client-side localStorage under user email or guest
+  const saveLocalOrderHistory = (finalOrderId, displayMethod) => {
+    const emailKey = user ? user.email : (shippingAddress.email || 'guest');
+    const storedOrdersKey = `orders_${emailKey}`;
+    
+    const localOrder = {
+      id: finalOrderId,
+      createdAt: new Date().toISOString(),
+      items: cartItems.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price,
+        variant: item.variant
+      })),
+      total: orderTotal,
+      subtotal,
+      discountAmount,
+      shippingCost,
+      tax,
+      shippingAddress: {
+        fullName: shippingAddress.fullName,
+        email: emailKey,
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        zip: shippingAddress.zip,
+        country: shippingAddress.country,
+        phone: shippingAddress.phone
+      },
+      paymentMethod: displayMethod,
+      status: 'completed'
+    };
+
+    try {
+      const existingOrders = JSON.parse(localStorage.getItem(storedOrdersKey) || '[]');
+      existingOrders.unshift(localOrder);
+      localStorage.setItem(storedOrdersKey, JSON.stringify(existingOrders));
+    } catch (e) {
+      console.error("Error writing order to localStorage:", e);
+    }
+  };
+
   const handlePlaceOrder = async () => {
+    if (paymentMethod === 'razorpay') {
+      setCheckoutStep('submitting');
+      
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        setCheckoutStep('payment');
+        showToast("Failed to load Razorpay SDK. Please check your internet connection.", "error");
+        return;
+      }
+
+      try {
+        const response = await api.post('/payment/razorpay/order', {
+          items: cartItems.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: item.product.price
+          })),
+          shippingAddress: {
+            fullName: shippingAddress.fullName,
+            address: shippingAddress.address,
+            city: shippingAddress.city,
+            zip: shippingAddress.zip,
+            country: shippingAddress.country,
+            phone: shippingAddress.phone
+          }
+        });
+
+        const { orderId, razorpayOrderId, amount, keyId, isMock } = response.data;
+
+        if (isMock) {
+          setMockOrderData({
+            orderId,
+            razorpayOrderId,
+            amount,
+            keyId
+          });
+          setShowMockModal(true);
+          setCheckoutStep('payment');
+        } else {
+          const options = {
+            key: keyId,
+            amount: amount,
+            currency: "INR",
+            name: "FandomRealm Store 🧙‍♂️",
+            description: "Secure Sandbox Checkout",
+            order_id: razorpayOrderId,
+            theme: {
+              color: "#8b5cf6"
+            },
+            prefill: {
+              name: shippingAddress.fullName,
+              email: shippingAddress.email || user?.email,
+              contact: shippingAddress.phone
+            },
+            handler: async function (res) {
+              setCheckoutStep('submitting');
+              try {
+                const verifyRes = await api.post('/payment/razorpay/verify', {
+                  orderId,
+                  razorpayOrderId: res.razorpay_order_id,
+                  razorpayPaymentId: res.razorpay_payment_id,
+                  razorpaySignature: res.razorpay_signature
+                });
+
+                if (verifyRes.data.success) {
+                  saveLocalOrderHistory(orderId, 'Razorpay (Free Tests)');
+                  setPlacedOrderId(orderId);
+                  showToast("Payment verified successfully!", "success");
+                  setTimeout(() => {
+                    setCheckoutStep('success');
+                    clearCart();
+                  }, 1000);
+                } else {
+                  setCheckoutStep('payment');
+                  showToast("Payment verification failed.", "error");
+                }
+              } catch (err) {
+                console.error("Verification error:", err);
+                setCheckoutStep('payment');
+                showToast("Payment verification error.", "error");
+              }
+            },
+            modal: {
+              ondismiss: function () {
+                setCheckoutStep('payment');
+              }
+            }
+          };
+
+          const rzp1 = new window.Razorpay(options);
+          rzp1.open();
+        }
+      } catch (error) {
+        console.error("Failed to create payment order:", error);
+        setCheckoutStep('payment');
+        showToast(error.response?.data?.error || "Error initiating payment checkout.", "error");
+      }
+      return;
+    }
+
     if (!validatePayment()) return;
 
     setCheckoutStep('submitting');
@@ -174,44 +337,7 @@ function Checkout() {
       }
     }
 
-    // Save order details to client-side localStorage under user email or guest
-    const emailKey = user ? user.email : (shippingAddress.email || 'guest');
-    const storedOrdersKey = `orders_${emailKey}`;
-    
-    const localOrder = {
-      id: localId,
-      createdAt: new Date().toISOString(),
-      items: cartItems.map(item => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-        price: item.product.price,
-        variant: item.variant
-      })),
-      total: orderTotal,
-      subtotal,
-      discountAmount,
-      shippingCost,
-      tax,
-      shippingAddress: {
-        fullName: shippingAddress.fullName,
-        email: emailKey,
-        address: shippingAddress.address,
-        city: shippingAddress.city,
-        zip: shippingAddress.zip,
-        country: shippingAddress.country,
-        phone: shippingAddress.phone
-      },
-      paymentMethod: displayMethod,
-      status: 'completed'
-    };
-
-    try {
-      const existingOrders = JSON.parse(localStorage.getItem(storedOrdersKey) || '[]');
-      existingOrders.unshift(localOrder);
-      localStorage.setItem(storedOrdersKey, JSON.stringify(existingOrders));
-    } catch (e) {
-      console.error("Error writing order to localStorage:", e);
-    }
+    saveLocalOrderHistory(localId, displayMethod);
 
     // Process submission transition
     setTimeout(() => {
@@ -258,7 +384,7 @@ function Checkout() {
             </div>
             <div className="flex justify-between">
               <span>Final Total Paid:</span>
-              <strong className="text-brand-accent font-extrabold">${orderTotal.toFixed(2)}</strong>
+              <strong className="text-brand-accent font-extrabold">₹{orderTotal.toFixed(2)}</strong>
             </div>
           </div>
 
@@ -444,14 +570,16 @@ function Checkout() {
               <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest">Select Payment Method</h2>
               
               {/* Payment Tabs */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                  { id: 'credit_card', label: '💳 Card', desc: 'Secure Credit Card' },
+                  { id: 'razorpay', label: '💳 Razorpay', desc: 'Free Tests' },
+                  { id: 'credit_card', label: '🔒 Card', desc: 'Interactive Card' },
                   { id: 'paypal', label: '🅿️ PayPal', desc: 'PayPal Account' },
                   { id: 'cod', label: '💵 COD', desc: 'Cash on Delivery' }
                 ].map(method => (
                   <button
                     key={method.id}
+                    type="button"
                     onClick={() => { setPaymentMethod(method.id); setErrors({}); }}
                     className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === method.id ? 'bg-brand-primary/10 border-brand-primary text-white ring-2 ring-brand-primary/10 scale-102' : 'bg-slate-950/40 border-white/5 text-slate-400 hover:border-white/10 hover:text-slate-300'}`}
                   >
@@ -669,7 +797,7 @@ function Checkout() {
                     </span>
                   </div>
                   <div className="text-xs font-black text-slate-200 flex-shrink-0">
-                    ${(product.price * item.quantity).toFixed(2)}
+                    ₹{(product.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               );
@@ -682,38 +810,138 @@ function Checkout() {
           <div className="space-y-2.5 text-xs text-slate-400">
             <div className="flex justify-between">
               <span>Items Subtotal</span>
-              <span className="font-bold text-slate-200">${subtotal.toFixed(2)}</span>
+              <span className="font-bold text-slate-200">₹{subtotal.toFixed(2)}</span>
             </div>
             
             {discountPercent > 0 && (
               <div className="flex justify-between text-emerald-400 font-semibold">
                 <span>FANDOM20 Code (-20%)</span>
-                <span>-${discountAmount.toFixed(2)}</span>
+                <span>-₹{discountAmount.toFixed(2)}</span>
               </div>
             )}
 
             <div className="flex justify-between">
               <span>Standard Shipping</span>
               <span className="font-bold text-slate-200">
-                {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+                {shippingCost === 0 ? 'FREE' : `₹${shippingCost.toFixed(2)}`}
               </span>
             </div>
 
             <div className="flex justify-between">
               <span>Estimated Tax (8%)</span>
-              <span className="font-bold text-slate-200">${tax.toFixed(2)}</span>
+              <span className="font-bold text-slate-200">₹{tax.toFixed(2)}</span>
             </div>
 
             <div className="h-px bg-white/5 !my-3" />
 
             <div className="flex justify-between items-center text-sm">
               <span className="font-bold text-slate-200">Final Order Balance:</span>
-              <span className="text-lg font-black text-brand-accent">${orderTotal.toFixed(2)}</span>
+              <span className="text-lg font-black text-brand-accent">₹{orderTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* Dynamic Glassmorphic Mock Razorpay Gateway Portal Overlay */}
+      {showMockModal && mockOrderData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md px-4">
+          <div className="glass max-w-md w-full p-8 rounded-3xl border border-white/10 relative overflow-hidden flex flex-col space-y-6 shadow-2xl shadow-brand-primary/20">
+            {/* Ambient Background Lights */}
+            <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-brand-primary/20 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-brand-accent/20 blur-3xl pointer-events-none" />
+
+            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+              <span className="text-3xl filter drop-shadow-md">💳</span>
+              <div>
+                <h3 className="text-lg font-black text-white tracking-wide">Razorpay Free-Test Gateway</h3>
+                <span className="text-[10px] text-emerald-400 font-extrabold uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  Simulated Sandbox Mode
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/5 space-y-2.5 font-mono text-xs text-slate-400">
+                <div className="flex justify-between">
+                  <span>Merchant:</span>
+                  <span className="text-white font-semibold">FandomRealm Store</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Simulated Order ID:</span>
+                  <span className="text-white select-all">{mockOrderData.razorpayOrderId}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Payment Amount:</span>
+                  <strong className="text-brand-accent font-extrabold">₹{(mockOrderData.amount / 100).toFixed(2)}</strong>
+                </div>
+                <div className="flex justify-between border-t border-white/5 pt-2.5">
+                  <span>Currency:</span>
+                  <span className="text-slate-200">INR (₹)</span>
+                </div>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-900/40 border border-white/5 text-[11px] text-slate-400 leading-relaxed">
+                ℹ️ No Razorpay test keys were configured in <code>backend/.env</code>. The backend successfully initiated this mock order. Select an action below to test the end-to-end webhook-verification database cycle.
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2.5">
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowMockModal(false);
+                  setCheckoutStep('submitting');
+                  try {
+                    const mockPaymentId = `pay_mock_${Math.random().toString(36).substring(2, 10)}`;
+                    const mockSignature = `mock_signature_${Math.random().toString(36).substring(2, 12)}`;
+                    
+                    const verifyRes = await api.post('/payment/razorpay/verify', {
+                      orderId: mockOrderData.orderId,
+                      razorpayOrderId: mockOrderData.razorpayOrderId,
+                      razorpayPaymentId: mockPaymentId,
+                      razorpaySignature: mockSignature
+                    });
+
+                    if (verifyRes.data.success) {
+                      saveLocalOrderHistory(mockOrderData.orderId, 'Razorpay (Simulated Sandbox)');
+                      setPlacedOrderId(mockOrderData.orderId);
+                      showToast("Simulated Sandbox transaction approved!", "success");
+                      setTimeout(() => {
+                        setCheckoutStep('success');
+                        clearCart();
+                      }, 1000);
+                    } else {
+                      setCheckoutStep('payment');
+                      showToast("Simulated validation rejected.", "error");
+                    }
+                  } catch (err) {
+                    console.error("Verification error:", err);
+                    setCheckoutStep('payment');
+                    showToast("Simulated validation error.", "error");
+                  }
+                }}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-emerald-500/10 cursor-pointer text-center"
+              >
+                Simulate Payment Success ✨
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowMockModal(false);
+                  setCheckoutStep('payment');
+                  showToast("Payment simulated failure or cancelled.", "error");
+                }}
+                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:text-white text-slate-300 text-xs font-bold transition-all active:scale-95 cursor-pointer text-center"
+              >
+                Cancel Simulated Payment ❌
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

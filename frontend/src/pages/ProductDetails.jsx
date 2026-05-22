@@ -194,7 +194,7 @@ function ProductDetails() {
                 ⭐ {avgRating} <span className="text-slate-400 font-normal">({localReviews.length} reviews)</span>
               </div>
               <span className="text-2xl lg:text-3xl font-black text-white">
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </span>
             </div>
 

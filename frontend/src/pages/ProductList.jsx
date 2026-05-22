@@ -20,7 +20,7 @@ function ProductList() {
   const [searchVal, setSearchVal] = useState('');
   const [selectedFandoms, setSelectedFandoms] = useState([]);
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [maxPrice, setMaxPrice] = useState(100);
+  const [maxPrice, setMaxPrice] = useState(8000);
   const [minRating, setMinRating] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
 
@@ -34,7 +34,7 @@ function ProductList() {
     setSearchVal(search);
     setSelectedFandoms(fandom ? [fandom] : []);
     setSelectedCategories(category ? [category] : []);
-    setMaxPrice(100);
+    setMaxPrice(8000);
     setMinRating(0);
     setVisibleCount(6);
   }, [searchParams]);
@@ -94,7 +94,7 @@ function ProductList() {
     setSearchVal('');
     setSelectedFandoms([]);
     setSelectedCategories([]);
-    setMaxPrice(100);
+    setMaxPrice(8000);
     setMinRating(0);
   };
 
@@ -259,13 +259,13 @@ function ProductList() {
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
               <h4 className="font-bold text-slate-400 uppercase tracking-wide">Max Price</h4>
-              <span className="font-black text-white">${maxPrice}</span>
+              <span className="font-black text-white">₹{maxPrice}</span>
             </div>
             <input
               type="range"
-              min="10"
-              max="100"
-              step="5"
+              min="100"
+              max="8000"
+              step="100"
               value={maxPrice}
               onChange={e => setMaxPrice(Number(e.target.value))}
               className="w-full accent-brand-primary bg-white/10 rounded-lg h-1.5 cursor-pointer"

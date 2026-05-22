@@ -37,6 +37,10 @@ func SetupRoutes(r *gin.Engine) {
 	api.GET("/orders", middleware.AuthRequired(), controllers.GetOrders)
 	api.POST("/orders/checkout", middleware.AuthRequired(), controllers.Checkout)
 
+	// Razorpay Payments (Protected)
+	api.POST("/payment/razorpay/order", middleware.AuthRequired(), controllers.CreateRazorpayOrder)
+	api.POST("/payment/razorpay/verify", middleware.AuthRequired(), controllers.VerifyRazorpayPayment)
+
 	// Admin (Protected)
 	api.GET("/admin/orders", middleware.AuthRequired(), middleware.AdminRequired(), controllers.GetAdminOrders)
 	api.PUT("/admin/orders/:id/status", middleware.AuthRequired(), middleware.AdminRequired(), controllers.UpdateOrderStatus)

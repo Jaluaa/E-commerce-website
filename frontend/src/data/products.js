@@ -702,4 +702,4 @@ const products = [
   }
 ];
 
-export default products;
+export default products.map(p => ({ ...p, price: Math.round(p.price * 80) }));

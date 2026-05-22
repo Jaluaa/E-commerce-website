@@ -182,7 +182,7 @@ function Orders() {
                   onClick={() => toggleExpandOrder(order.id)}
                   className={`flex flex-col md:flex-row md:items-center justify-between p-5 md:p-6 gap-4 cursor-pointer select-none transition-colors ${isExpanded ? 'bg-white/3 border-b border-white/5' : 'bg-transparent'}`}
                 >
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 flex-1 items-center">
                     
                     {/* Order Reference */}
                     <div className="space-y-1">
@@ -198,11 +198,36 @@ function Orders() {
                       <span className="text-xs font-bold text-slate-200 block truncate">{date}</span>
                     </div>
 
+                    {/* Product Images Preview */}
+                    <div className="space-y-1 col-span-2 sm:col-span-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Products</span>
+                      <div className="flex -space-x-2.5 overflow-hidden items-center mt-1">
+                        {order.items?.slice(0, 3).map((item, idx) => {
+                          const product = getProductDetails(item.productId);
+                          const displayImage = product.images && product.images.length > 0 ? product.images[0] : '';
+                          return (
+                            <img
+                              key={idx}
+                              src={displayImage}
+                              alt={product.title}
+                              className="w-8 h-8 rounded-lg object-cover border-2 border-slate-900 shadow-md flex-shrink-0"
+                              title={`${product.title} (x${item.quantity})`}
+                            />
+                          );
+                        })}
+                        {order.items?.length > 3 && (
+                          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 border-2 border-slate-900 text-[10px] font-black text-slate-300 z-10 shadow-md">
+                            +{order.items.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
                     {/* Total Paid */}
                     <div className="space-y-1">
                       <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Total Paid</span>
                       <span className="text-xs font-black text-brand-accent block">
-                        ${order.total.toFixed(2)}
+                        ₹{order.total.toFixed(2)}
                       </span>
                     </div>
 
@@ -240,18 +265,21 @@ function Orders() {
                           const product = getProductDetails(item.productId);
                           const displayImage = product.images && product.images.length > 0 ? product.images[0] : '';
                           return (
-                            <div key={idx} className="flex gap-4 items-center justify-between p-3 rounded-xl bg-slate-950/20 border border-white/5">
-                              <div className="flex items-center gap-3 min-w-0">
+                            <div key={idx} className="flex gap-4 items-center justify-between p-3 rounded-xl bg-slate-950/20 border border-white/5 hover:border-white/10 hover:bg-slate-900/30 transition-all duration-200">
+                              <Link 
+                                to={`/products/${item.productId}`}
+                                className="flex items-center gap-3 min-w-0 group cursor-pointer"
+                              >
                                 <img 
                                   src={displayImage} 
                                   alt={product.title} 
-                                  className="w-10 h-10 rounded-lg object-cover border border-white/5 flex-shrink-0"
+                                  className="w-10 h-10 rounded-lg object-cover border border-white/5 flex-shrink-0 group-hover:scale-105 transition-transform duration-300"
                                 />
                                 <div className="min-w-0">
                                   <span className="text-[8px] font-bold text-brand-primary uppercase tracking-wider block">
                                     {product.fandom}
                                   </span>
-                                  <h4 className="text-xs font-black text-white truncate max-w-[200px] sm:max-w-xs md:max-w-md">
+                                  <h4 className="text-xs font-black text-white group-hover:text-brand-primary truncate max-w-[200px] sm:max-w-xs md:max-w-md transition-colors duration-200">
                                     {product.title}
                                   </h4>
                                   {item.variant && (
@@ -260,11 +288,11 @@ function Orders() {
                                     </span>
                                   )}
                                 </div>
-                              </div>
+                              </Link>
 
                               <div className="text-right flex-shrink-0">
                                 <span className="text-xs font-bold text-slate-200 block">
-                                  ${item.price.toFixed(2)}
+                                  ₹{item.price.toFixed(2)}
                                 </span>
                                 <span className="text-[9px] text-slate-500 block">
                                   Qty: {item.quantity}
@@ -320,29 +348,29 @@ function Orders() {
                           <>
                             <div className="flex justify-between">
                               <span>Items Subtotal</span>
-                              <span className="font-bold text-slate-200">${order.subtotal.toFixed(2)}</span>
+                              <span className="font-bold text-slate-200">₹{order.subtotal.toFixed(2)}</span>
                             </div>
                             {order.discountAmount > 0 && (
                               <div className="flex justify-between text-emerald-400 font-semibold">
                                 <span>Promo Discount</span>
-                                <span>-${order.discountAmount.toFixed(2)}</span>
+                                <span>-₹{order.discountAmount.toFixed(2)}</span>
                               </div>
                             )}
                             <div className="flex justify-between">
                               <span>Shipping Cost</span>
                               <span className="font-bold text-slate-200">
-                                {order.shippingCost === 0 ? 'FREE' : `$${order.shippingCost.toFixed(2)}`}
+                                {order.shippingCost === 0 ? 'FREE' : `₹${order.shippingCost.toFixed(2)}`}
                               </span>
                             </div>
                             <div className="flex justify-between">
                               <span>Estimated Tax (8%)</span>
-                              <span className="font-bold text-slate-200">${order.tax.toFixed(2)}</span>
+                              <span className="font-bold text-slate-200">₹{order.tax.toFixed(2)}</span>
                             </div>
                           </>
                         ) : (
                           <div className="flex justify-between">
                             <span>Receipt Subtotal</span>
-                            <span className="font-bold text-slate-200">${(order.total / 1.08).toFixed(2)}</span>
+                            <span className="font-bold text-slate-200">₹{(order.total / 1.08).toFixed(2)}</span>
                           </div>
                         )}
 
@@ -350,7 +378,7 @@ function Orders() {
                         
                         <div className="flex justify-between items-center text-xs font-black">
                           <span className="text-slate-200">Final Order Paid:</span>
-                          <span className="text-brand-accent">${order.total.toFixed(2)}</span>
+                          <span className="text-brand-accent">₹{order.total.toFixed(2)}</span>
                         </div>
                       </div>
 

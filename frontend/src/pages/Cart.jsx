@@ -30,7 +30,7 @@ function Cart() {
 
   const subtotal = getCartTotal();
   const discountAmount = (subtotal * discountPercent) / 100;
-  const shippingFee = subtotal > 50 || subtotal === 0 ? 0 : 5.00;
+  const shippingFee = subtotal > 4000 || subtotal === 0 ? 0 : 400.00;
   const finalTotal = subtotal - discountAmount + shippingFee;
 
   const handleProceedToCheckout = () => {
@@ -107,7 +107,7 @@ function Cart() {
                         </p>
                       )}
                       <p className="text-xs font-black text-brand-accent mt-1.5 md:hidden">
-                        ${product.price.toFixed(2)}
+                        ₹{product.price.toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -116,7 +116,7 @@ function Cart() {
                   <div className="flex items-center gap-6">
                     {/* Unit Price */}
                     <span className="hidden md:inline text-sm font-extrabold text-slate-200">
-                      ${product.price.toFixed(2)}
+                      ₹{product.price.toFixed(2)}
                     </span>
 
                     {/* Quantity selectors */}
@@ -140,7 +140,7 @@ function Cart() {
 
                     {/* Total Price */}
                     <span className="text-sm md:text-base font-black text-white min-w-[70px] text-right">
-                      ${(product.price * item.quantity).toFixed(2)}
+                      ₹{(product.price * item.quantity).toFixed(2)}
                     </span>
 
                     {/* Remove button */}
@@ -207,26 +207,26 @@ function Cart() {
               <div className="space-y-3 text-xs text-slate-400">
                 <div className="flex justify-between">
                   <span>Cart Subtotal:</span>
-                  <span className="font-bold text-slate-200">${subtotal.toFixed(2)}</span>
+                  <span className="font-bold text-slate-200">₹{subtotal.toFixed(2)}</span>
                 </div>
                 
                 {discountPercent > 0 && (
                   <div className="flex justify-between text-emerald-400 font-semibold">
                     <span>Discount (20%):</span>
-                    <span>-${discountAmount.toFixed(2)}</span>
+                    <span>-₹{discountAmount.toFixed(2)}</span>
                   </div>
                 )}
 
                 <div className="flex justify-between">
                   <span>Shipping Fee:</span>
                   <span className="font-bold text-slate-200">
-                    {shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)}`}
+                    {shippingFee === 0 ? 'FREE' : `₹${shippingFee.toFixed(2)}`}
                   </span>
                 </div>
                 
                 {shippingFee > 0 && (
                   <p className="text-[10px] text-slate-500 text-right leading-tight">
-                    Add ${(50 - subtotal).toFixed(2)} more to unlock FREE shipping!
+                    Add ₹{(4000 - subtotal).toFixed(2)} more to unlock FREE shipping!
                   </p>
                 )}
               </div>
@@ -235,7 +235,7 @@ function Cart() {
 
               <div className="flex justify-between items-center text-sm">
                 <span className="font-bold text-slate-200">Final Balance:</span>
-                <span className="text-xl font-black text-white">${finalTotal.toFixed(2)}</span>
+                <span className="text-xl font-black text-white">₹{finalTotal.toFixed(2)}</span>
               </div>
 
               <button
