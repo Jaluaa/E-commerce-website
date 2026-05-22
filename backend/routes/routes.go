@@ -13,6 +13,8 @@ func SetupRoutes(r *gin.Engine) {
 	// Auth
 	api.POST("/auth/register", controllers.Register)
 	api.POST("/auth/login", controllers.Login)
+	api.POST("/auth/verify", controllers.VerifyEmail)
+	api.POST("/auth/resend-code", controllers.ResendCode)
 
 	// Products
 	api.GET("/products", controllers.GetProducts)

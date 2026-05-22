@@ -50,6 +50,32 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* Premium Glassmorphic Card Styling */
+.premium-card {
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.85) 0%, rgba(10, 15, 26, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 50px rgba(59, 130, 246, 0.08);
+}
+
+/* Premium Modern Input Styling */
+.premium-input {
+  background: rgba(7, 10, 19, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-input:focus {
+  background: rgba(5, 7, 13, 0.85);
+  border-color: #3b82f6;
+  box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+  outline: none;
+}
+
 /* Card hover scaling and shadows */
 .hover-card-trigger:hover .hover-card-target {
   transform: scale(1.05);

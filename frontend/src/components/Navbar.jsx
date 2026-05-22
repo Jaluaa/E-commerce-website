@@ -242,10 +242,10 @@ function Navbar() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
           
           {/* Hamburger + Brand */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 lg:mr-8 xl:mr-16">
             <button 
               onClick={() => setSidebarOpen(true)} 
-              className="text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+              className="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
               aria-label="Open menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,7 +258,7 @@ function Navbar() {
           </div>
 
           {/* Desktop Navigation Category Dropdowns */}
-          <div ref={dropdownRef} className="hidden lg:flex items-center gap-6">
+          <div ref={dropdownRef} className="hidden lg:flex items-center lg:gap-4 xl:gap-6 lg:ml-4">
             {fandomData.map(f => (
               <div 
                 key={f.fandom}
@@ -278,7 +278,7 @@ function Navbar() {
                  {/* Dropdown Card */}
                 {activeDropdown === f.fandom && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 pt-3 z-50 animate-heart-pop">
-                    <div className="rounded-2xl glass p-2 shadow-2xl">
+                    <div className="rounded-2xl premium-card p-2 shadow-2xl">
                       <Link 
                         to={`/products?fandom=${encodeURIComponent(f.fandom)}`}
                         className="block px-4 py-2.5 text-xs font-bold text-brand-primary hover:bg-white/5 rounded-xl transition-all"
@@ -306,16 +306,16 @@ function Navbar() {
           </div>
 
           {/* Desktop Search + Action Icons */}
-          <div className="flex items-center gap-3 md:gap-5">
+          <div className="flex items-center gap-2 md:gap-3.5">
             {/* Quick search input */}
-            <form onSubmit={handleSearch} className="hidden md:block">
+            <form onSubmit={handleSearch} className="hidden md:block lg:ml-8 xl:ml-16">
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search merch..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="w-40 xl:w-56 pl-9 pr-4 py-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-white/5 focus:border-brand-primary/60 focus:w-48 xl:focus:w-64 text-slate-200 text-xs transition-all outline-hidden"
+                  className="w-32 xl:w-44 pl-9 pr-4 py-1.5 rounded-full bg-slate-900/60 hover:bg-slate-900 border border-white/5 focus:border-brand-primary/60 focus:w-40 xl:focus:w-52 text-slate-200 text-xs transition-all outline-hidden"
                 />
                 <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -381,7 +381,7 @@ function Navbar() {
 
               {/* Profile Dropdown Panel */}
               {profileOpen && user && (
-                <div className="absolute right-0 mt-2 w-48 rounded-2xl glass p-2 shadow-2xl animate-heart-pop z-50">
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl premium-card p-2 shadow-2xl animate-heart-pop z-50">
                   <div className="px-3 py-2">
                     <p className="text-[10px] text-slate-400">Logged in as</p>
                     <p className="text-xs font-bold text-slate-200 truncate">{user.email}</p>

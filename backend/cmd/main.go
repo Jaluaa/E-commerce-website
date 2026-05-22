@@ -24,9 +24,10 @@ func seedDatabase() {
 	if err != nil { // Not found, seed
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
 		admin := models.User{
-			Email:    adminEmail,
-			Password: string(hashedPassword),
-			Role:     "admin",
+			Email:      adminEmail,
+			Password:   string(hashedPassword),
+			Role:       "admin",
+			IsVerified: true,
 		}
 		userColl.InsertOne(context.TODO(), admin)
 		log.Println("Admin user seeded")
