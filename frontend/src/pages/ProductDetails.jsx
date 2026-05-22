@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
+import { useToast } from '../contexts/ToastContext';
 import productsData from '../data/products';
 import ProductCard from '../components/ProductCard';
 
@@ -17,6 +18,7 @@ function ProductDetails() {
 
   const { addToCart } = useCart();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { showToast } = useToast();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -60,13 +62,12 @@ function ProductDetails() {
 
   const handleAddToCart = () => {
     addToCart(product.id, quantity, selectedVariant);
-    alert(`Added ${quantity} x ${product.title} (${selectedVariant}) to your cart!`);
   };
 
   const handleReviewSubmit = (e) => {
     e.preventDefault();
     if (!newReview.name.trim() || !newReview.comment.trim()) {
-      alert("Please fill in your name and comment.");
+      showToast("Please fill in your name and comment.", "error");
       return;
     }
     const submitted = {

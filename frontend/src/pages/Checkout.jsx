@@ -153,6 +153,11 @@ function Checkout() {
     if (user) {
       try {
         await api.post('/orders/checkout', {
+          items: cartItems.map(item => ({
+            productId: item.product.id,
+            quantity: item.quantity,
+            price: item.product.price
+          })),
           shippingAddress: {
             fullName: shippingAddress.fullName,
             address: shippingAddress.address,

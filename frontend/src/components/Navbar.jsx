@@ -170,6 +170,12 @@ function Navbar() {
               </span>
               {wishlistCount > 0 && <span className="bg-red-500 px-2 py-0.5 rounded-full text-[10px] font-bold text-white">{wishlistCount}</span>}
             </Link>
+            {user && user.role === 'admin' && (
+              <Link to="/admin" className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-brand-primary hover:text-white hover:bg-brand-primary/10 transition-all text-sm font-bold">
+                <span className="text-sm">⚙️</span>
+                Admin Portal
+              </Link>
+            )}
             {user && (
               <Link to="/orders" className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-all text-sm font-medium">
                 <svg className="w-4 h-4 text-slate-400 group-hover:text-brand-primary transition-colors" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -266,7 +272,7 @@ function Navbar() {
                 onMouseEnter={() => setActiveDropdown(f.fandom)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <button className="relative flex items-center gap-1.5 text-slate-300 hover:text-white py-2 text-sm font-bold tracking-wide transition-colors cursor-pointer">
+                <button className="relative flex items-center gap-1.5 text-slate-300 hover:text-white py-2 text-sm font-bold tracking-wide transition-colors cursor-pointer whitespace-nowrap">
                   {f.fandom}
                   <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-300 ${activeDropdown === f.fandom ? 'rotate-180 text-brand-primary' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
@@ -306,9 +312,9 @@ function Navbar() {
           </div>
 
           {/* Desktop Search + Action Icons */}
-          <div className="flex items-center gap-2 md:gap-3.5">
+          <div className="flex items-center gap-1 md:gap-1.5 lg:gap-2">
             {/* Quick search input */}
-            <form onSubmit={handleSearch} className="hidden md:block lg:ml-8 xl:ml-16">
+            <form onSubmit={handleSearch} className="hidden md:block lg:ml-2 xl:ml-4">
               <div className="relative">
                 <input
                   type="text"
@@ -323,35 +329,38 @@ function Navbar() {
               </div>
             </form>
 
-            {/* Wishlist Icon */}
-            <Link 
-              to="/wishlist" 
-              className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-5 h-5 px-1 flex items-center justify-center text-[10px] font-black border border-slate-950 scale-95 shadow-md shadow-red-500/20">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
+            {/* Grouped Wishlist & Cart to reduce space between them */}
+            <div className="flex items-center gap-0">
+              {/* Wishlist Icon */}
+              <Link 
+                to="/wishlist" 
+                className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full min-w-5 h-5 px-1 flex items-center justify-center text-[10px] font-black border border-slate-950 scale-95 shadow-md shadow-red-500/20">
+                    {wishlistCount}
+                  </span>
+                )}
+              </Link>
 
-            {/* Cart Icon */}
-            <Link 
-              to="/cart" 
-              className="relative flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-brand-primary text-white rounded-full min-w-5 h-5 px-1 flex items-center justify-center text-[10px] font-black border border-slate-950 scale-95 shadow-md shadow-brand-primary/20">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
+              {/* Cart Icon */}
+              <Link 
+                to="/cart" 
+                className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-brand-primary text-white rounded-full min-w-5 h-5 px-1 flex items-center justify-center text-[10px] font-black border border-slate-950 scale-95 shadow-md shadow-brand-primary/20">
+                    {cartCount}
+                  </span>
+                )}
+              </Link>
+            </div>
 
             {/* Auth/Profile */}
             <div ref={profileRef} className="relative">
@@ -363,16 +372,16 @@ function Navbar() {
                   {user.email[0].toUpperCase()}
                 </button>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-1.5">
                   <Link 
                     to="/login" 
-                    className="hidden sm:inline-block px-4 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all"
+                    className="hidden sm:inline-block px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all"
                   >
                     Login
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-primary to-brand-accent shadow-lg shadow-brand-primary/10 hover:brightness-115 active:scale-95 transition-all"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-primary to-brand-accent shadow-lg shadow-brand-primary/10 hover:brightness-115 active:scale-95 transition-all"
                   >
                     Sign Up
                   </Link>
@@ -387,6 +396,15 @@ function Navbar() {
                     <p className="text-xs font-bold text-slate-200 truncate">{user.email}</p>
                   </div>
                   <div className="h-px bg-white/5 my-1" />
+                  {user.role === 'admin' && (
+                    <Link 
+                      to="/admin" 
+                      className="block w-full text-left px-3 py-2 text-xs text-brand-primary hover:text-white hover:bg-brand-primary/10 rounded-xl transition-all font-bold flex items-center gap-1.5"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      ⚙️ Admin Portal
+                    </Link>
+                  )}
                   <Link 
                     to="/orders" 
                     className="block w-full text-left px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium"

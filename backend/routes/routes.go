@@ -19,7 +19,9 @@ func SetupRoutes(r *gin.Engine) {
 	// Products
 	api.GET("/products", controllers.GetProducts)
 	api.GET("/products/:id", controllers.GetProduct)
-	api.POST("/products", middleware.AuthRequired(), controllers.CreateProduct)
+	api.POST("/products", middleware.AuthRequired(), middleware.AdminRequired(), controllers.CreateProduct)
+	api.PUT("/products/:id", middleware.AuthRequired(), middleware.AdminRequired(), controllers.UpdateProduct)
+	api.DELETE("/products/:id", middleware.AuthRequired(), middleware.AdminRequired(), controllers.DeleteProduct)
 
 	// Cart (Protected)
 	api.GET("/cart", middleware.AuthRequired(), controllers.GetCart)
@@ -34,4 +36,9 @@ func SetupRoutes(r *gin.Engine) {
 	// Orders (Protected)
 	api.GET("/orders", middleware.AuthRequired(), controllers.GetOrders)
 	api.POST("/orders/checkout", middleware.AuthRequired(), controllers.Checkout)
+
+	// Admin (Protected)
+	api.GET("/admin/orders", middleware.AuthRequired(), middleware.AdminRequired(), controllers.GetAdminOrders)
+	api.PUT("/admin/orders/:id/status", middleware.AuthRequired(), middleware.AdminRequired(), controllers.UpdateOrderStatus)
+	api.GET("/admin/stats", middleware.AuthRequired(), middleware.AdminRequired(), controllers.GetAdminStats)
 }

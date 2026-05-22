@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useCart } from '../contexts/CartContext';
+import { useToast } from '../contexts/ToastContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 function Cart() {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+  const { showToast } = useToast();
   const [promoCode, setPromoCode] = useState('');
   const [discountPercent, setDiscountPercent] = useState(0);
   const [promoApplied, setPromoApplied] = useState(false);
@@ -14,9 +16,9 @@ function Cart() {
     if (promoCode.trim().toUpperCase() === 'FANDOM20') {
       setDiscountPercent(20);
       setPromoApplied(true);
-      alert("Success! 20% Promo code discount applied to your cart.");
+      showToast("Success! 20% Promo code discount applied to your cart.", "success");
     } else {
-      alert("Invalid promo code! Try using 'FANDOM20' for 20% off.");
+      showToast("Invalid promo code! Try using 'FANDOM20' for 20% off.", "error");
     }
   };
 

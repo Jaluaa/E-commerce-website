@@ -9,6 +9,7 @@ import Signup from './pages/Signup';
 import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
+import AdminDashboard from './pages/AdminDashboard';
 import { WishlistProvider } from './contexts/WishlistContext';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -25,6 +26,7 @@ function App() {
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>

@@ -1,12 +1,14 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import productsData from '../data/products';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   // Load cart from localStorage
   useEffect(() => {
@@ -44,7 +46,7 @@ export const CartProvider = ({ children }) => {
         updated[existingIndex].quantity = newQty;
       } else {
         updated[existingIndex].quantity = product.stock;
-        alert(`Only ${product.stock} items left in stock.`);
+        showToast(`Only ${product.stock} items left in stock.`, "error");
       }
     } else {
       // Limit to stock

@@ -21,8 +21,9 @@ func seedDatabase() {
 	adminEmail := "admin@example.com"
 	var existingAdmin models.User
 	err := userColl.FindOne(context.TODO(), bson.M{"email": adminEmail}).Decode(&existingAdmin)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
+	
 	if err != nil { // Not found, seed
-		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("admin123"), bcrypt.DefaultCost)
 		admin := models.User{
 			Email:      adminEmail,
 			Password:   string(hashedPassword),
@@ -31,6 +32,17 @@ func seedDatabase() {
 		}
 		userColl.InsertOne(context.TODO(), admin)
 		log.Println("Admin user seeded")
+	} else {
+		// Update existing admin to ensure they are verified and have the admin role
+		update := bson.M{
+			"$set": bson.M{
+				"is_verified": true,
+				"role":        "admin",
+				"password":    string(hashedPassword),
+			},
+		}
+		userColl.UpdateOne(context.TODO(), bson.M{"email": adminEmail}, update)
+		log.Println("Admin user verified status and credentials enforced")
 	}
 
 	// Seed Products

@@ -56,7 +56,22 @@ func AuthRequired() gin.HandlerFunc {
 			return
 		}
 
+		role, _ := claims["role"].(string)
+
 		c.Set("userID", userID)
+		c.Set("userRole", role)
+		c.Next()
+	}
+}
+
+func AdminRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get("userRole")
+		if !exists || role != "admin" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: Admin privileges required"})
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

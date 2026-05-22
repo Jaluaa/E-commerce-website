@@ -10,4 +10,7 @@ type Product struct {
 	ImageURL      string             `bson:"imageUrl" json:"imageUrl"`
 	Category      string             `bson:"category" json:"category"`
 	StockQuantity int                `bson:"stockQuantity" json:"stockQuantity"`
+	Fandom        string             `bson:"fandom" json:"fandom"`
+	Rating        float64            `bson:"rating" json:"rating"`
+	Variants      []string           `bson:"variants" json:"variants"`
 }

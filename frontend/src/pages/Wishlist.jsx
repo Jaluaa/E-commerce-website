@@ -1,17 +1,19 @@
 import { useWishlist } from '../contexts/WishlistContext';
 import { useCart } from '../contexts/CartContext';
+import { useToast } from '../contexts/ToastContext';
 import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 
 function Wishlist() {
   const { wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   const handleMoveToCart = (productId) => {
     // Add to cart and remove from wishlist
     addToCart(productId, 1);
     removeFromWishlist(productId);
-    alert("Moved item to your shopping cart!");
+    showToast("Moved item to your shopping cart!", "success");
   };
 
   return (
