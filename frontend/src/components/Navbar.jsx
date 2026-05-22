@@ -4,6 +4,30 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 
+// Glowing Magical SVG FandomRealm Logo Icon
+const LogoIcon = ({ className = "w-7 h-7" }) => (
+  <svg className={`${className} filter drop-shadow-[0_0_8px_rgba(139,92,246,0.5)] group-hover:rotate-12 transition-transform duration-500`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#8b5cf6" />
+        <stop offset="100%" stopColor="#d946ef" />
+      </linearGradient>
+      <filter id="logo-glow" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur stdDeviation="1.2" result="blur" />
+        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+      </filter>
+    </defs>
+    {/* Outer magic dash ring */}
+    <circle cx="12" cy="12" r="9.5" stroke="url(#logo-grad)" strokeWidth="1.5" strokeDasharray="3 2" filter="url(#logo-glow)" />
+    {/* Outer solid thin ring */}
+    <circle cx="12" cy="12" r="7.5" stroke="url(#logo-grad)" strokeWidth="0.5" strokeOpacity="0.5" />
+    {/* Wizard hat / star crown crest */}
+    <path d="M12 4.5L7 13.5H17L12 4.5Z" fill="url(#logo-grad)" fillOpacity="0.15" stroke="url(#logo-grad)" strokeWidth="1.5" strokeLinejoin="round" />
+    {/* Inner magical diamond star */}
+    <path d="M12 7.5L13 9.8L15.3 10.8L13 11.8L12 14.1L11 11.8L8.7 10.8L11 9.8L12 7.5Z" fill="url(#logo-grad)" filter="url(#logo-glow)" />
+  </svg>
+);
+
 function Navbar() {
   const { user, logout } = useAuth();
   const { getCartCount } = useCart();
@@ -94,8 +118,11 @@ function Navbar() {
       {/* Mobile Sidebar/Drawer */}
       <aside className={`fixed top-0 left-0 bottom-0 z-55 flex w-72 flex-col bg-slate-950/95 border-r border-white/5 p-6 overflow-y-auto transition-transform duration-300 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between mb-8">
-          <Link to="/" className="text-xl font-black bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent tracking-wider">
-            FANDOMREALM
+          <Link to="/" className="flex items-center gap-2 group">
+            <LogoIcon className="w-6 h-6" />
+            <span className="text-xl font-black bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent tracking-wider group-hover:brightness-110 transition-all">
+              FANDOMREALM
+            </span>
           </Link>
           <button 
             onClick={() => setSidebarOpen(false)} 
@@ -245,26 +272,29 @@ function Navbar() {
       <nav 
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-slate-950/80 backdrop-blur-md shadow-2xl shadow-black/30 border-b border-white/5 py-3' : 'bg-transparent py-5'}`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 flex items-center justify-between">
           
           {/* Hamburger + Brand */}
-          <div className="flex items-center gap-4 lg:mr-8 xl:mr-16">
+          <div className="flex items-center gap-1.5 sm:gap-3 lg:gap-4 lg:mr-8 xl:mr-16">
             <button 
               onClick={() => setSidebarOpen(true)} 
-              className="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
+              className="text-slate-300 hover:text-white p-1.5 sm:p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
               aria-label="Open menu"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
               </svg>
             </button>
-            <Link to="/" className="text-xl md:text-2xl font-black bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent tracking-wider hover:brightness-110">
-              FANDOMREALM
+            <Link to="/" className="flex items-center gap-1.5 sm:gap-2.5 group select-none">
+              <LogoIcon className="w-7 h-7 md:w-8 h-8" />
+              <span className="text-[15px] min-[380px]:text-lg sm:text-xl md:text-2xl font-black bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent tracking-wider group-hover:brightness-110 transition-all">
+                FANDOMREALM
+              </span>
             </Link>
           </div>
 
           {/* Desktop Navigation Category Dropdowns */}
-          <div ref={dropdownRef} className="hidden lg:flex items-center lg:gap-4 xl:gap-6 lg:ml-4">
+          <div ref={dropdownRef} className="hidden xl:flex items-center xl:gap-6 ml-4">
             {fandomData.map(f => (
               <div 
                 key={f.fandom}

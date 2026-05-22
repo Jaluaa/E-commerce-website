@@ -202,7 +202,7 @@ function ProductList() {
       <div className="flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar Filters */}
-        <aside className="w-full lg:w-64 flex-shrink-0 glass rounded-3xl p-6 h-fit space-y-6">
+        <aside id="filters-sidebar" className="w-full lg:w-64 flex-shrink-0 glass rounded-3xl p-6 h-fit space-y-6 order-2 lg:order-1">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-black text-slate-100 uppercase tracking-widest">Filters</h3>
             <button 
@@ -293,9 +293,13 @@ function ProductList() {
         </aside>
 
         {/* Product Grid */}
-        <div className="flex-1 space-y-6">
+        <div className="flex-1 space-y-6 order-1 lg:order-2">
           <div className="flex justify-between items-center text-xs text-slate-400">
             <span>Found <b>{products.length}</b> magical items</span>
+            {/* Quick scroll to filters on mobile */}
+            <a href="#filters-sidebar" className="lg:hidden text-brand-primary font-bold hover:text-brand-accent transition-colors flex items-center gap-1">
+              Adjust Filters <span className="text-[10px]">▼</span>
+            </a>
           </div>
 
           {products.length > 0 ? (
