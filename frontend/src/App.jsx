@@ -10,10 +10,12 @@ import Wishlist from './pages/Wishlist';
 import Checkout from './pages/Checkout';
 import Orders from './pages/Orders';
 import { WishlistProvider } from './contexts/WishlistContext';
+import ScrollToTop from './components/ScrollToTop';
 
 function App() {
   return (
     <WishlistProvider>
+      <ScrollToTop />
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />

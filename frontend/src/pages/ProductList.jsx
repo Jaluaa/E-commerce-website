@@ -26,6 +26,7 @@ function ProductList() {
 
   // Sync state with URL params on mount & param change
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const search = searchParams.get('search') || '';
     const fandom = searchParams.get('fandom') || '';
     const category = searchParams.get('category') || '';
