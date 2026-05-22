@@ -39,7 +39,7 @@ function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
   const profileRef = useRef(null);
-  
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -109,8 +109,8 @@ function Navbar() {
     <>
       {/* Mobile Drawer Overlay */}
       {sidebarOpen && (
-        <div 
-          onClick={() => setSidebarOpen(false)} 
+        <div
+          onClick={() => setSidebarOpen(false)}
           className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs transition-opacity duration-300"
         />
       )}
@@ -124,8 +124,8 @@ function Navbar() {
               FANDOMREALM
             </span>
           </Link>
-          <button 
-            onClick={() => setSidebarOpen(false)} 
+          <button
+            onClick={() => setSidebarOpen(false)}
             className="text-slate-400 hover:text-white text-lg p-2 rounded-full hover:bg-white/5 cursor-pointer"
           >
             ✕
@@ -225,14 +225,14 @@ function Navbar() {
                   {f.fandom}
                 </span>
                 <div className="pl-5 space-y-1 border-l border-white/5">
-                  <Link 
+                  <Link
                     to={`/products?fandom=${encodeURIComponent(f.fandom)}`}
                     className="block py-1 text-xs text-slate-400 hover:text-brand-primary"
                   >
                     View All {f.fandom}
                   </Link>
                   {f.categories.map(c => (
-                    <Link 
+                    <Link
                       key={c}
                       to={`/products?fandom=${encodeURIComponent(f.fandom)}&category=${encodeURIComponent(c)}`}
                       className="block py-1 text-xs text-slate-400 hover:text-brand-primary"
@@ -249,35 +249,30 @@ function Navbar() {
         {/* Logout/Auth at bottom */}
         <div className="mt-auto pt-6 border-t border-white/5">
           {user ? (
-            <button 
+            <button
               onClick={handleLogout}
               className="w-full py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold hover:bg-red-500/20 text-sm transition-all"
             >
               Sign Out
             </button>
           ) : (
-            <div className="space-y-2">
-              <Link to="/login" className="block text-center py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all">
-                Login
-              </Link>
-              <Link to="/signup" className="block text-center py-2.5 rounded-xl bg-white/5 border border-white/10 text-slate-200 font-bold text-sm hover:bg-white/10 transition-all">
-                Create Account
-              </Link>
-            </div>
+            <Link to="/login" className="block text-center py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all shimmer-btn">
+              Login
+            </Link>
           )}
         </div>
       </aside>
 
       {/* Top Navbar */}
-      <nav 
+      <nav
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${scrolled ? 'bg-slate-950/80 backdrop-blur-md shadow-2xl shadow-black/30 border-b border-white/5 py-3' : 'bg-transparent py-5'}`}
       >
         <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 flex items-center justify-between">
-          
+
           {/* Hamburger + Brand */}
           <div className="flex items-center gap-1.5 sm:gap-3 lg:gap-4 lg:mr-8 xl:mr-16">
-            <button 
-              onClick={() => setSidebarOpen(true)} 
+            <button
+              onClick={() => setSidebarOpen(true)}
               className="text-slate-300 hover:text-white p-1.5 sm:p-2 rounded-xl hover:bg-white/5 transition-all cursor-pointer"
               aria-label="Open menu"
             >
@@ -296,7 +291,7 @@ function Navbar() {
           {/* Desktop Navigation Category Dropdowns */}
           <div ref={dropdownRef} className="hidden xl:flex items-center xl:gap-6 ml-4">
             {fandomData.map(f => (
-              <div 
+              <div
                 key={f.fandom}
                 className="relative group/nav"
                 onMouseEnter={() => setActiveDropdown(f.fandom)}
@@ -311,11 +306,11 @@ function Navbar() {
                   <span className={`absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-brand-primary to-brand-accent transition-transform duration-300 origin-center ${activeDropdown === f.fandom ? 'scale-x-100' : 'scale-x-0 group-hover/nav:scale-x-100'}`} />
                 </button>
 
-                 {/* Dropdown Card */}
+                {/* Dropdown Card */}
                 {activeDropdown === f.fandom && (
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-48 pt-3 z-50 animate-heart-pop">
                     <div className="rounded-2xl premium-card p-2 shadow-2xl">
-                      <Link 
+                      <Link
                         to={`/products?fandom=${encodeURIComponent(f.fandom)}`}
                         className="block px-4 py-2.5 text-xs font-bold text-brand-primary hover:bg-white/5 rounded-xl transition-all"
                       >
@@ -323,7 +318,7 @@ function Navbar() {
                       </Link>
                       <div className="h-px bg-white/5 my-1" />
                       {f.categories.map(c => (
-                        <Link 
+                        <Link
                           key={c}
                           to={`/products?fandom=${encodeURIComponent(f.fandom)}&category=${encodeURIComponent(c)}`}
                           className="block px-4 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
@@ -362,8 +357,8 @@ function Navbar() {
             {/* Grouped Wishlist & Cart to reduce space between them */}
             <div className="flex items-center gap-0">
               {/* Wishlist Icon */}
-              <Link 
-                to="/wishlist" 
+              <Link
+                to="/wishlist"
                 className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -377,8 +372,8 @@ function Navbar() {
               </Link>
 
               {/* Cart Icon */}
-              <Link 
-                to="/cart" 
+              <Link
+                to="/cart"
                 className="relative flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/5 text-slate-300 hover:text-white transition-all"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -393,29 +388,21 @@ function Navbar() {
             </div>
 
             {/* Auth/Profile */}
-            <div ref={profileRef} className="relative">
+            <div ref={profileRef} className="relative flex-shrink-0">
               {user ? (
-                <button 
+                <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-primary to-brand-accent flex items-center justify-center font-bold text-white text-sm shadow-md cursor-pointer hover:brightness-110 active:scale-95 transition-all"
                 >
                   {user.email[0].toUpperCase()}
                 </button>
               ) : (
-                <div className="flex items-center gap-1 sm:gap-1.5">
-                  <Link 
-                    to="/login" 
-                    className="hidden sm:inline-block px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white transition-all"
-                  >
-                    Login
-                  </Link>
-                  <Link 
-                    to="/signup" 
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-primary to-brand-accent shadow-lg shadow-brand-primary/10 hover:brightness-115 active:scale-95 transition-all"
-                  >
-                    Sign Up
-                  </Link>
-                </div>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-brand-primary to-brand-accent shadow-lg shadow-brand-primary/10 hover:brightness-115 active:scale-95 transition-all whitespace-nowrap shimmer-btn cursor-pointer block"
+                >
+                  Login
+                </Link>
               )}
 
               {/* Profile Dropdown Panel */}
@@ -427,22 +414,22 @@ function Navbar() {
                   </div>
                   <div className="h-px bg-white/5 my-1" />
                   {user.role === 'admin' && (
-                    <Link 
-                      to="/admin" 
+                    <Link
+                      to="/admin"
                       className="block w-full text-left px-3 py-2 text-xs text-brand-primary hover:text-white hover:bg-brand-primary/10 rounded-xl transition-all font-bold flex items-center gap-1.5"
                       onClick={() => setProfileOpen(false)}
                     >
                       ⚙️ Admin Portal
                     </Link>
                   )}
-                  <Link 
-                    to="/orders" 
+                  <Link
+                    to="/orders"
                     className="block w-full text-left px-3 py-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-xl transition-all font-medium"
                     onClick={() => setProfileOpen(false)}
                   >
                     My Orders
                   </Link>
-                  <button 
+                  <button
                     onClick={handleLogout}
                     className="block w-full text-left px-3 py-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/5 rounded-xl transition-all font-medium cursor-pointer"
                   >
@@ -462,4 +449,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default Navbar;
