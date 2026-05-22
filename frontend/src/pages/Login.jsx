@@ -20,6 +20,16 @@ function Login() {
 
   return (
     <div className="container">
+      {/* Back to Home Button */}
+      <div className="pt-4 mb-4 text-left w-full max-w-md mx-auto">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <span>←</span> Back to Home
+        </Link>
+      </div>
+
       <div className="form-container glass">
         <h2 style={{ fontSize: '2rem', marginBottom: '1.5rem', textAlign: 'center' }}>Welcome Back</h2>
         <form onSubmit={handleSubmit}>

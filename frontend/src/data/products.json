@@ -1,0 +1,291 @@
+[
+  {
+    "id": "hp-wand-elder",
+    "title": "The Elder Wand Collectible Replica",
+    "category": "Wands",
+    "fandom": "Harry Potter",
+    "price": 39.99,
+    "rating": 4.9,
+    "stock": 15,
+    "images": [
+      "https://images.unsplash.com/photo-1547891654-e66ed7edd96c?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1509248961158-e54f6934749c?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "An authentic, high-quality hand-painted replica of Albus Dumbledore's legendary wand. Cast in durable collector-grade resin with a solid core, it feels perfectly weighted in your hand.",
+    "variants": ["Collector Box Edition", "Standard Box Edition"],
+    "reviews": [
+      {
+        "name": "Harry P.",
+        "rating": 5,
+        "comment": "Unbelievable details. It feels like real ancient wood. Worth every cent!",
+        "date": "2026-05-10"
+      },
+      {
+        "name": "Luna L.",
+        "rating": 4.8,
+        "comment": "Beautiful box, very high quality. The wood texture is perfect.",
+        "date": "2026-05-18"
+      }
+    ]
+  },
+  {
+    "id": "hp-hoodie-hogwarts",
+    "title": "Hogwarts Alumni Crest Heavyweight Hoodie",
+    "category": "Hoodies",
+    "fandom": "Harry Potter",
+    "price": 54.99,
+    "rating": 4.8,
+    "stock": 42,
+    "images": [
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Show your school pride in style. This dark charcoal heavyweight cotton fleece hoodie features a premium embroidered gold Hogwarts school crest, dynamic gold aglets, and dual-lined warmth.",
+    "variants": ["XS", "S", "M", "L", "XL"],
+    "reviews": [
+      {
+        "name": "Hermione G.",
+        "rating": 5,
+        "comment": "Exceptionally warm and the embroidery detail is flawless. Excellent craftsmanship.",
+        "date": "2026-04-20"
+      }
+    ]
+  },
+  {
+    "id": "hp-coll-snitch",
+    "title": "Golden Snitch Crystal Display Sphere",
+    "category": "Collectibles",
+    "fandom": "Harry Potter",
+    "price": 29.99,
+    "rating": 4.7,
+    "stock": 8,
+    "images": [
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Capture the magic of Quidditch. This premium K9 crystal display ball features an intricately detailed 3D laser-engraved Golden Snitch floating gracefully in the center. Rests on a beautiful wooden dark-gold LED base.",
+    "variants": ["Warm Gold LED Base", "Classic Mahogany Base"],
+    "reviews": [
+      {
+        "name": "Ron W.",
+        "rating": 4,
+        "comment": "Brilliant nightstand lamp. The snitch looks like it's actually flying inside the glass!",
+        "date": "2026-05-02"
+      }
+    ]
+  },
+  {
+    "id": "fr-mug-central",
+    "title": "Official Central Perk Giant Ceramic Mug",
+    "category": "Mugs",
+    "fandom": "Friends",
+    "price": 18.99,
+    "rating": 4.9,
+    "stock": 120,
+    "images": [
+      "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "The exact oversized mug from your favorite coffee house. Features the iconic green and orange Central Perk logo on a dual-sided print. Holds a whopping 24 ounces of your favorite brew.",
+    "variants": ["Classic Green", "Warm Autumn Orange"],
+    "reviews": [
+      {
+        "name": "Gunther",
+        "rating": 5,
+        "comment": "Reminds me of home. Holds a huge amount of coffee!",
+        "date": "2026-05-15"
+      },
+      {
+        "name": "Rachel G.",
+        "rating": 4.9,
+        "comment": "So cute and cozy. Perfect for hugging with both hands on rainy days.",
+        "date": "2026-05-19"
+      }
+    ]
+  },
+  {
+    "id": "fr-tshirt-lobster",
+    "title": "You Are My Lobster Premium Graphic Tee",
+    "category": "Tshirts",
+    "fandom": "Friends",
+    "price": 24.99,
+    "rating": 4.6,
+    "stock": 35,
+    "images": [
+      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Are you ready to find your lobster? This ultra-soft, ring-spun premium combed cotton graphic tee features an original hand-drawn retro lobster illustration. Designed for long-lasting comfort.",
+    "variants": ["S", "M", "L", "XL"],
+    "reviews": [
+      {
+        "name": "Phoebe B.",
+        "rating": 5,
+        "comment": "It's a known fact that lobsters fall in love and mate for life! Love it!",
+        "date": "2026-03-12"
+      }
+    ]
+  },
+  {
+    "id": "fr-decor-peephole",
+    "title": "Monica's Apartment Yellow Peephole Frame",
+    "category": "Decor",
+    "fandom": "Friends",
+    "price": 21.99,
+    "rating": 4.9,
+    "stock": 60,
+    "images": [
+      "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Bring a piece of television history directly to your front door. An exact resin recreation of the yellow ornamental peephole frame hanging on Monica's purple door. Comes with high-strength non-damaging mounting tape.",
+    "variants": ["Classic Yellow Resin", "Handcrafted Golden Wood"],
+    "reviews": [
+      {
+        "name": "Monica G.",
+        "rating": 5,
+        "comment": "Looks exactly like the one on my door. Perfect symmetry!",
+        "date": "2026-05-14"
+      },
+      {
+        "name": "Chandler B.",
+        "rating": 4.8,
+        "comment": "Could this BE any more nostalgic?",
+        "date": "2026-05-20"
+      }
+    ]
+  },
+  {
+    "id": "kp-bts-album",
+    "title": "BTS 'Proof' Anthology Album Set",
+    "category": "BTS",
+    "fandom": "K-pop",
+    "price": 69.99,
+    "rating": 5.0,
+    "stock": 25,
+    "images": [
+      "https://images.unsplash.com/photo-1614680376593-902f74fa0d41?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "The ultimate anthology album detailing BTS's historic 9-year journey. The premium box set includes 3 compact discs loaded with hits and unreleased demos, an elegant 132-page photo book, card sets, and a collector's poster.",
+    "variants": ["Collector's Edition Box Set", "Compact Standard Edition"],
+    "reviews": [
+      {
+        "name": "ArmyGirl",
+        "rating": 5,
+        "comment": "Absolutely masterpiece! The photo book is thick and the photocards are so beautiful. Borahae!",
+        "date": "2026-05-01"
+      }
+    ]
+  },
+  {
+    "id": "kp-bp-light",
+    "title": "BLACKPINK Official BI-PING-BONG Lightstick v2",
+    "category": "BLACKPINK",
+    "fandom": "K-pop",
+    "price": 59.99,
+    "rating": 4.9,
+    "stock": 18,
+    "images": [
+      "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Light up your area! The official BLACKPINK Hammer Lightstick Version 2 features interactive Bluetooth concert syncing, a reactive audio squeeze trigger, customized silicone squeaky hammers, and a dark sleek storage dock.",
+    "variants": ["Bluetooth Concert v2", "Limited Edition Pearl Pink"],
+    "reviews": [
+      {
+        "name": "BlinkStar",
+        "rating": 5,
+        "comment": "It squeaks! So satisfying and syncs perfectly with the mobile app for music videos.",
+        "date": "2026-05-16"
+      }
+    ]
+  },
+  {
+    "id": "kp-sk-hoodie",
+    "title": "Stray Kids '5-STAR' Oversized Streetwear Hoodie",
+    "category": "Stray Kids",
+    "fandom": "K-pop",
+    "price": 49.99,
+    "rating": 4.8,
+    "stock": 30,
+    "images": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1485230895905-ec40ba36b9bc?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Adopt the signature Stray Kids aesthetic. This premium heavy-brushed back oversized cotton hoodie features a dual-sleeve reflective star print and an artistic metallic '5-STAR' screen printed chest graphic.",
+    "variants": ["S (Oversized)", "M (Oversized)", "L (Oversized)", "XL (Oversized)"],
+    "reviews": [
+      {
+        "name": "StayForever",
+        "rating": 5,
+        "comment": "Super comfy and oversized! The sleeve prints glow slightly under blue light.",
+        "date": "2026-05-09"
+      }
+    ]
+  },
+  {
+    "id": "kd-poster-cloy",
+    "title": "Crash Landing on You Metallic Art Poster",
+    "category": "Posters",
+    "fandom": "K-drama",
+    "price": 14.99,
+    "rating": 4.7,
+    "stock": 50,
+    "images": [
+      "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "Capture the breathtaking campfire night scene in Switzerland. Printed on high-grade archival 300gsm metallic foil paper, this poster glistens under ambient light, bringing the emotional romance directly to your wall.",
+    "variants": ["A3 Metallic Foil", "A2 Premium Matte Canvas"],
+    "reviews": [
+      {
+        "name": "Se-ri Fan",
+        "rating": 5,
+        "comment": "The metallic texture makes the fire embers look like they are sparkling. Beautiful!",
+        "date": "2026-04-18"
+      }
+    ]
+  },
+  {
+    "id": "kd-hoodie-heart",
+    "title": "Korean Heart Finger Embroidered Minimal Hoodie",
+    "category": "Hoodies",
+    "fandom": "K-drama",
+    "price": 45.99,
+    "rating": 4.9,
+    "stock": 22,
+    "images": [
+      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "A subtle, ultra-sleek nod to all your favorite K-dramas. Features a beautifully stitched neon-accented mini hand-heart emoji gesture on the left chest. Extremely soft premium cotton blend.",
+    "variants": ["Lavender Haze", "Midnight Black", "Snow White"],
+    "reviews": [
+      {
+        "name": "DramaQueen",
+        "rating": 5,
+        "comment": "Perfect minimal hoodie! People who watch kdramas instantly recognize it. Got so many compliments.",
+        "date": "2026-05-11"
+      }
+    ]
+  },
+  {
+    "id": "kd-acc-goblin",
+    "title": "Goblin: The Lonely God Destiny Brass Necklace",
+    "category": "Accessories",
+    "fandom": "K-drama",
+    "price": 22.99,
+    "rating": 4.8,
+    "stock": 12,
+    "images": [
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?q=80&w=600&auto=format&fit=crop"
+    ],
+    "description": "An exquisite replica of the brass destiny necklace gifted by Kim Shin. Made of hypoallergenic 18K white-gold plated brass, featuring a central faceted stellar crystal and an engraved message of eternal destiny.",
+    "variants": ["18K White Gold Plated", "Sterling Silver 925"],
+    "reviews": [
+      {
+        "name": "Eun-tak",
+        "rating": 5,
+        "comment": "So delicate and absolutely gorgeous. The crystal catches light beautifully.",
+        "date": "2026-05-15"
+      }
+    ]
+  }
+]

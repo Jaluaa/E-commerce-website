@@ -2,89 +2,170 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { Link } from 'react-router-dom';
+import productsData from '../data/products';
 
 function Orders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState(null);
-  const [productsCache, setProductsCache] = useState({});
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const loadAllOrders = async () => {
+      setLoading(true);
+      
+      // Load local orders from localStorage based on guest or user email
+      const emailKey = user ? user.email : 'guest';
+      const storedOrdersKey = `orders_${emailKey}`;
+      let localOrdersList = [];
+      
       try {
-        const res = await api.get('/orders');
-        // Sort orders by date descending
-        const sorted = (res.data || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setOrders(sorted);
-
-        // Fetch details of all unique product IDs in the orders to populate images and names
-        const uniqueProductIDs = new Set();
-        sorted.forEach(order => {
-          order.items?.forEach(item => {
-            uniqueProductIDs.add(item.productId);
-          });
-        });
-
-        const cache = {};
-        for (const pid of uniqueProductIDs) {
-          try {
-            const prodRes = await api.get(`/products/${pid}`);
-            cache[pid] = prodRes.data;
-          } catch (e) {
-            console.error(e);
-          }
+        const stored = localStorage.getItem(storedOrdersKey);
+        if (stored) {
+          localOrdersList = JSON.parse(stored);
         }
-        setProductsCache(cache);
-      } catch (error) {
-        console.error("Failed to fetch orders", error);
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.error("Failed to parse local orders:", e);
       }
+
+      // If user is logged in, attempt to fetch orders from the Go backend database as well
+      let backendOrdersList = [];
+      if (user) {
+        try {
+          const res = await api.get('/orders');
+          if (res.data && Array.isArray(res.data)) {
+            // Normalize backend orders to match local order schema
+            backendOrdersList = res.data.map(order => ({
+              id: order.id || order._id || `ord_back_${Math.random().toString(36).substring(2, 7)}`,
+              createdAt: order.createdAt || new Date().toISOString(),
+              items: (order.items || []).map(item => ({
+                productId: item.productId || item.product_id,
+                quantity: item.quantity,
+                price: item.price || 0,
+                variant: item.variant || ''
+              })),
+              total: order.total || 0,
+              subtotal: order.subtotal || order.total || 0,
+              discountAmount: order.discountAmount || 0,
+              shippingCost: order.shippingCost || 0,
+              tax: order.tax || 0,
+              shippingAddress: order.shippingAddress || {
+                fullName: 'Registered Member',
+                email: user.email,
+                address: 'Checkout Completed',
+                city: '',
+                zip: '',
+                country: '',
+                phone: ''
+              },
+              paymentMethod: order.paymentMethod || 'Credit Card',
+              status: order.status || 'completed'
+            }));
+          }
+        } catch (error) {
+          console.error("Backend fetch orders failed, falling back purely to localStorage history:", error);
+        }
+      }
+
+      // Combine local and backend orders, deduplicating by ID
+      const allOrdersMap = new Map();
+      
+      // Add backend orders first
+      backendOrdersList.forEach(order => {
+        allOrdersMap.set(order.id, order);
+      });
+      
+      // Add local orders (overwriting backend duplicates, as local has richer layout fields like discounts/taxes)
+      localOrdersList.forEach(order => {
+        allOrdersMap.set(order.id, order);
+      });
+
+      // Convert map back to array and sort by createdAt date descending
+      const combinedSorted = Array.from(allOrdersMap.values()).sort((a, b) => {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+
+      setOrders(combinedSorted);
+      setLoading(false);
     };
 
-    if (user) {
-      fetchOrders();
-    }
+    loadAllOrders();
   }, [user]);
 
   const toggleExpandOrder = (id) => {
     setExpandedOrderId(prev => (prev === id ? null : id));
   };
 
-  if (!user) return <div className="container" style={{ padding: '4rem 1rem' }}>Please <Link to="/login" style={{ color: 'var(--primary-color)' }}>login</Link> to view your orders.</div>;
-  if (loading) return <div className="container" style={{ padding: '4rem 1rem', textAlign: 'center' }}>Loading your orders...</div>;
+  // Find product helper with robust fallback
+  const getProductDetails = (productId) => {
+    const found = productsData.find(p => p.id === productId);
+    if (found) return found;
+    
+    // Fallback: in case of MongoDB Hex ObjectIDs, check if any product ID matches as a substring, or return fallback
+    const substringMatch = productsData.find(p => productId && (productId.includes(p.id) || p.id.includes(productId)));
+    if (substringMatch) return substringMatch;
+
+    return {
+      title: 'Premium Fandom Merchandise',
+      fandom: 'Fandom Special',
+      images: ['https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=600&auto=format&fit=crop'],
+      price: 0
+    };
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 md:px-8 py-20 text-center flex flex-col items-center justify-center space-y-4">
+        <div className="border-4 border-white/10 w-12 h-12 rounded-full border-l-brand-primary animate-spin" />
+        <h3 className="text-base font-extrabold text-white">Loading Order History...</h3>
+      </div>
+    );
+  }
 
   return (
-    <div className="container" style={{ padding: '2rem 1rem', minHeight: '80vh' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
-        <span style={{ fontSize: '2rem' }}>📦</span>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>My Orders</h1>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
+      
+      {/* Back to Home Button */}
+      <div className="pt-4 mb-6">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <span>←</span> Back to Home
+        </Link>
+      </div>
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <span className="text-3xl filter drop-shadow-md">📦</span>
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-wide">My Orders</h1>
+          <p className="text-xs text-slate-400 mt-1">
+            {user 
+              ? `Review details and delivery statuses of your past purchases associated with ${user.email}` 
+              : 'Review your guest orders and delivery details stored in this browser session'}
+          </p>
+        </div>
       </div>
 
       {orders.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '5rem 2rem',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid var(--glass-border)',
-          borderRadius: '1.5rem',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          maxWidth: '600px',
-          margin: '0 auto',
-        }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1.5rem' }}>🛍️</span>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>No orders placed yet</h2>
-          <p style={{ color: '#94a3b8', marginBottom: '2rem', fontSize: '1rem', lineHeight: 1.6 }}>
-            Browse our catalog, add items to your cart, and place an order to see it appear here!
-          </p>
-          <Link to="/products" className="btn btn-primary" style={{ padding: '0.85rem 2rem', borderRadius: '0.75rem' }}>
-            Browse Catalog
+        <div className="flex flex-col items-center justify-center text-center p-16 glass rounded-3xl border border-white/5 max-w-xl mx-auto space-y-6">
+          <span className="text-6xl filter drop-shadow-md">🛍️</span>
+          <div className="space-y-2">
+            <h2 className="text-lg font-extrabold text-white">No Order History Found</h2>
+            <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+              Looks like you haven't completed any magic checkouts yet. Let's explore our fandom catalog and find your favorites!
+            </p>
+          </div>
+          <Link 
+            to="/products" 
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 transition-all"
+          >
+            Explore Fandom Store
           </Link>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="space-y-4 max-w-4xl mx-auto">
           {orders.map((order) => {
             const isExpanded = expandedOrderId === order.id;
             const date = new Date(order.createdAt).toLocaleDateString(undefined, {
@@ -94,66 +175,51 @@ function Orders() {
             return (
               <div
                 key={order.id}
-                className="glass"
-                style={{
-                  borderRadius: '1.25rem',
-                  border: '1px solid var(--glass-border)',
-                  overflow: 'hidden',
-                  transition: 'all 0.2s ease-in-out',
-                }}
+                className={`glass rounded-2xl border transition-all duration-300 overflow-hidden ${isExpanded ? 'border-brand-primary/30 ring-2 ring-brand-primary/5 bg-slate-900/40' : 'border-white/5 hover:border-white/10 hover:bg-slate-900/10'}`}
               >
-                {/* Accordion Header */}
+                {/* Accordion Trigger Header */}
                 <div
                   onClick={() => toggleExpandOrder(order.id)}
-                  style={{
-                    padding: '1.5rem 2rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '1.5rem',
-                    background: isExpanded ? 'rgba(255,255,255,0.02)' : 'transparent',
-                    borderBottom: isExpanded ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                    transition: 'background 0.2s',
-                  }}
+                  className={`flex flex-col md:flex-row md:items-center justify-between p-5 md:p-6 gap-4 cursor-pointer select-none transition-colors ${isExpanded ? 'bg-white/3 border-b border-white/5' : 'bg-transparent'}`}
                 >
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>ORDER ID</span>
-                    <span style={{ fontFamily: 'monospace', fontSize: '0.95rem', color: '#fff', fontWeight: 700 }}>
-                      #{order.id.slice(-8).toUpperCase()}
-                    </span>
-                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1">
+                    
+                    {/* Order Reference */}
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Order Reference</span>
+                      <span className="font-mono text-xs font-black text-white uppercase truncate block max-w-[150px]">
+                        {order.id.replace('ord_', '#')}
+                      </span>
+                    </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>DATE PLACED</span>
-                    <span style={{ fontSize: '0.9rem', color: '#f8fafc' }}>{date}</span>
-                  </div>
+                    {/* Date Placed */}
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Date Placed</span>
+                      <span className="text-xs font-bold text-slate-200 block truncate">{date}</span>
+                    </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#94a3b8', fontWeight: 600 }}>TOTAL AMOUNT</span>
-                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--accent-color)' }}>
-                      ${order.total.toFixed(2)}
-                    </span>
-                  </div>
+                    {/* Total Paid */}
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Total Paid</span>
+                      <span className="text-xs font-black text-brand-accent block">
+                        ${order.total.toFixed(2)}
+                      </span>
+                    </div>
 
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {/* Status Badge */}
-                    <span style={{
-                      padding: '0.35rem 0.85rem',
-                      borderRadius: '2rem',
-                      fontSize: '0.8rem',
-                      fontWeight: 700,
-                      background: 'rgba(16, 185, 129, 0.15)',
-                      color: '#10b981',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                    }}>
-                      {order.status || 'Completed'}
-                    </span>
+                    <div className="space-y-1">
+                      <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest block">Delivery Status</span>
+                      <span className={`inline-block text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full border ${order.status?.toLowerCase() === 'pending' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+                        {order.status || 'Completed'}
+                      </span>
+                    </div>
 
-                    <span style={{ fontSize: '1.25rem', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s', color: '#64748b' }}>
+                  </div>
+
+                  {/* Expand Icon Arrow */}
+                  <div className="flex items-center justify-between md:justify-end gap-2 border-t md:border-t-0 border-white/5 pt-2.5 md:pt-0">
+                    <span className="text-[10px] font-bold text-brand-primary md:hidden">Click to view details</span>
+                    <span className={`text-[10px] text-slate-500 transform transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'rotate-0'}`}>
                       ▼
                     </span>
                   </div>
@@ -161,24 +227,48 @@ function Orders() {
 
                 {/* Accordion Detail Body */}
                 {isExpanded && (
-                  <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2.5rem' }}>
+                  <div className="p-5 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fadeIn">
+                    
                     {/* Items Purchased List */}
-                    <div>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1.25rem', color: '#fff', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '0.5rem' }}>Items Ordered</h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="lg:col-span-2 space-y-4">
+                      <h3 className="text-xs font-bold text-slate-300 uppercase tracking-wider pb-2 border-b border-white/5">
+                        Products Ordered
+                      </h3>
+                      
+                      <div className="space-y-3">
                         {order.items?.map((item, idx) => {
-                          const product = productsCache[item.productId] || {};
+                          const product = getProductDetails(item.productId);
+                          const displayImage = product.images && product.images.length > 0 ? product.images[0] : '';
                           return (
-                            <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                              <img src={product.imageUrl} alt={product.name} style={{ width: '44px', height: '44px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)' }} />
-                              <div style={{ flex: 1, minWidth: 0 }}>
-                                <h4 style={{ fontSize: '0.875rem', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
-                                  {product.name || 'Product Details'}
-                                </h4>
-                                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Qty: {item.quantity} × ${item.price.toFixed(2)}</span>
+                            <div key={idx} className="flex gap-4 items-center justify-between p-3 rounded-xl bg-slate-950/20 border border-white/5">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <img 
+                                  src={displayImage} 
+                                  alt={product.title} 
+                                  className="w-10 h-10 rounded-lg object-cover border border-white/5 flex-shrink-0"
+                                />
+                                <div className="min-w-0">
+                                  <span className="text-[8px] font-bold text-brand-primary uppercase tracking-wider block">
+                                    {product.fandom}
+                                  </span>
+                                  <h4 className="text-xs font-black text-white truncate max-w-[200px] sm:max-w-xs md:max-w-md">
+                                    {product.title}
+                                  </h4>
+                                  {item.variant && (
+                                    <span className="text-[9px] text-slate-400 block mt-0.5">
+                                      Style: <span className="text-slate-200 font-semibold">{item.variant}</span>
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
-                                ${(item.price * item.quantity).toFixed(2)}
+
+                              <div className="text-right flex-shrink-0">
+                                <span className="text-xs font-bold text-slate-200 block">
+                                  ${item.price.toFixed(2)}
+                                </span>
+                                <span className="text-[9px] text-slate-500 block">
+                                  Qty: {item.quantity}
+                                </span>
                               </div>
                             </div>
                           );
@@ -186,24 +276,84 @@ function Orders() {
                       </div>
                     </div>
 
-                    {/* Shipping Address & Details Receipt */}
-                    <div style={{ background: 'rgba(15,23,42,0.3)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.04)' }}>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '1rem', color: '#fff' }}>Shipping & Details</h3>
+                    {/* Shipping Address & Receipt Breakdown */}
+                    <div className="space-y-4">
                       
-                      {order.shippingAddress ? (
-                        <div style={{ fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', color: '#cbd5e1' }}>
-                          <div><span style={{ color: '#64748b' }}>Recipient:</span> <strong style={{ color: '#fff' }}>{order.shippingAddress.fullName}</strong></div>
-                          <div><span style={{ color: '#64748b' }}>Address:</span> <span style={{ color: '#fff' }}>{order.shippingAddress.address}</span></div>
-                          <div><span style={{ color: '#64748b' }}>City/ZIP:</span> <span style={{ color: '#fff' }}>{order.shippingAddress.city}, {order.shippingAddress.zip}</span></div>
-                          <div><span style={{ color: '#64748b' }}>Country:</span> <span style={{ color: '#fff' }}>{order.shippingAddress.country}</span></div>
-                          <div><span style={{ color: '#64748b' }}>Phone:</span> <span style={{ color: '#fff' }}>{order.shippingAddress.phone}</span></div>
-                          <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.5rem' }}>
-                            <span style={{ color: '#64748b' }}>Payment Method:</span> <strong style={{ color: 'var(--primary-color)' }}>{order.paymentMethod || 'Credit Card'}</strong>
-                          </div>
+                      {/* Shipping Info Block */}
+                      <div className="p-4 rounded-xl bg-slate-950/40 border border-white/5 space-y-2 text-xs text-slate-400">
+                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest pb-1 border-b border-white/5 mb-2">
+                          Delivery Details
+                        </h4>
+                        <div>
+                          <span className="text-slate-500 block text-[9px] uppercase font-bold">Recipient</span>
+                          <span className="text-white font-extrabold">{order.shippingAddress?.fullName}</span>
                         </div>
-                      ) : (
-                        <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>Standard shipping details (Checkout completed).</p>
-                      )}
+                        {order.shippingAddress?.email && (
+                          <div className="pt-1">
+                            <span className="text-slate-500 block text-[9px] uppercase font-bold">Email Address</span>
+                            <span className="text-slate-300 font-semibold">{order.shippingAddress?.email}</span>
+                          </div>
+                        )}
+                        <div className="pt-1">
+                          <span className="text-slate-500 block text-[9px] uppercase font-bold">Destination Address</span>
+                          <span className="text-slate-300">
+                            {order.shippingAddress?.address}, {order.shippingAddress?.city}, {order.shippingAddress?.zip}, {order.shippingAddress?.country || 'USA'}
+                          </span>
+                        </div>
+                        <div className="pt-1">
+                          <span className="text-slate-500 block text-[9px] uppercase font-bold">Contact Phone</span>
+                          <span className="text-slate-300 font-semibold">{order.shippingAddress?.phone}</span>
+                        </div>
+                        <div className="pt-1.5 border-t border-white/5 mt-2 flex justify-between items-center text-[10px]">
+                          <span className="text-slate-500 uppercase font-bold">Payment Method</span>
+                          <strong className="text-brand-primary uppercase font-extrabold">{order.paymentMethod || 'Credit Card'}</strong>
+                        </div>
+                      </div>
+
+                      {/* Pricing Receipts Breakdown (Only display if stored locally, or calculate from total) */}
+                      <div className="p-4 rounded-xl bg-slate-950/40 border border-white/5 space-y-1.5 text-[10px] text-slate-400">
+                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest pb-1 border-b border-white/5 mb-2">
+                          Receipt Summary
+                        </h4>
+                        
+                        {order.subtotal !== undefined ? (
+                          <>
+                            <div className="flex justify-between">
+                              <span>Items Subtotal</span>
+                              <span className="font-bold text-slate-200">${order.subtotal.toFixed(2)}</span>
+                            </div>
+                            {order.discountAmount > 0 && (
+                              <div className="flex justify-between text-emerald-400 font-semibold">
+                                <span>Promo Discount</span>
+                                <span>-${order.discountAmount.toFixed(2)}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between">
+                              <span>Shipping Cost</span>
+                              <span className="font-bold text-slate-200">
+                                {order.shippingCost === 0 ? 'FREE' : `$${order.shippingCost.toFixed(2)}`}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Estimated Tax (8%)</span>
+                              <span className="font-bold text-slate-200">${order.tax.toFixed(2)}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span>Receipt Subtotal</span>
+                            <span className="font-bold text-slate-200">${(order.total / 1.08).toFixed(2)}</span>
+                          </div>
+                        )}
+
+                        <div className="h-px bg-white/5 !my-2" />
+                        
+                        <div className="flex justify-between items-center text-xs font-black">
+                          <span className="text-slate-200">Final Order Paid:</span>
+                          <span className="text-brand-accent">${order.total.toFixed(2)}</span>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 )}

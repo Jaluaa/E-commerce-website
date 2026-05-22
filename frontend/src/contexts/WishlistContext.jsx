@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import api from '../services/api';
 import { useAuth } from './AuthContext';
+import productsData from '../data/products';
 
 const WishlistContext = createContext();
 
@@ -8,59 +8,53 @@ export const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const { user } = useAuth();
 
-  const fetchWishlist = async () => {
-    if (!user) {
-      setWishlistItems([]);
-      return;
-    }
-    try {
-      const res = await api.get('/wishlist');
-      console.log('🔍 Fetched wishlist items:', res.data);
-      setWishlistItems(res.data || []);
-    } catch (error) {
-      console.error("❌ Failed to fetch wishlist", error);
-    }
-  };
-
+  // Load wishlist from localStorage on mount and when user changes
   useEffect(() => {
-    fetchWishlist();
+    const key = user ? `wishlist_${user.email}` : 'wishlist_guest';
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        setWishlistItems(JSON.parse(stored));
+      } catch (e) {
+        setWishlistItems([]);
+      }
+    } else {
+      setWishlistItems([]);
+    }
   }, [user]);
 
-  const addToWishlist = async (productId) => {
-    if (!user) return alert('Please login first');
-    console.log('➕ Adding product to wishlist. Product ID:', productId);
-    try {
-      const res = await api.post('/wishlist', { productId });
-      console.log('✅ Add to wishlist response:', res.data);
-      fetchWishlist();
-    } catch (error) {
-      console.error("❌ Failed to add to wishlist", error);
-      alert("Failed to add to wishlist: " + (error.response?.data?.error || error.message));
-    }
+  // Save to localStorage whenever wishlistItems changes
+  const saveWishlist = (items) => {
+    setWishlistItems(items);
+    const key = user ? `wishlist_${user.email}` : 'wishlist_guest';
+    localStorage.setItem(key, JSON.stringify(items));
   };
 
-  const removeFromWishlist = async (productId) => {
-    console.log('➖ Removing product from wishlist. Product ID:', productId);
-    try {
-      const res = await api.delete(`/wishlist/${productId}`);
-      console.log('✅ Remove from wishlist response:', res.data);
-      fetchWishlist();
-    } catch (error) {
-      console.error("❌ Failed to remove from wishlist", error);
-      alert("Failed to remove from wishlist: " + (error.response?.data?.error || error.message));
-    }
+  const addToWishlist = (productId) => {
+    const product = productsData.find(p => p.id === productId);
+    if (!product) return;
+    
+    if (wishlistItems.some(item => item.id === productId)) return; // already in wishlist
+    
+    const updated = [...wishlistItems, product];
+    saveWishlist(updated);
+  };
+
+  const removeFromWishlist = (productId) => {
+    const updated = wishlistItems.filter(item => item.id !== productId);
+    saveWishlist(updated);
   };
 
   const isInWishlist = (productId) => {
-    const isPresent = wishlistItems.some(item => item._id === productId || item.id === productId);
-    return isPresent;
+    return wishlistItems.some(item => item.id === productId);
   };
 
   return (
-    <WishlistContext.Provider value={{ wishlistItems, addToWishlist, removeFromWishlist, isInWishlist, fetchWishlist }}>
+    <WishlistContext.Provider value={{ wishlistItems, addToWishlist, removeFromWishlist, isInWishlist }}>
       {children}
     </WishlistContext.Provider>
   );
 };
 
 export const useWishlist = () => useContext(WishlistContext);
+

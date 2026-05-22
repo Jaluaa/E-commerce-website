@@ -2,20 +2,23 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 function Checkout() {
-  const { cartItems, fetchCart, clearCart } = useCart();
+  const { cartItems, clearCart, getCartTotal } = useCart();
   const { user } = useAuth();
-  const [productsCache, setProductsCache] = useState({});
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const discountParam = searchParams.get('discount');
+  const discountPercent = discountParam ? parseInt(discountParam, 10) : 0;
 
-  // Multi-step state: 'shipping' | 'payment' | 'submitting'
+  // Multi-step state: 'shipping' | 'payment' | 'submitting' | 'success'
   const [checkoutStep, setCheckoutStep] = useState('shipping');
 
   // Form states
   const [shippingAddress, setShippingAddress] = useState({
     fullName: '',
+    email: user ? user.email : '',
     address: '',
     city: '',
     zip: '',
@@ -33,50 +36,42 @@ function Checkout() {
     cvv: ''
   });
 
-  // Client-side validations
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
   const [errors, setErrors] = useState({});
+  const [placedOrderId, setPlacedOrderId] = useState('');
 
+  // Sync logged-in user email
   useEffect(() => {
-    const fetchProductDetails = async () => {
-      const cache = {};
-      for (const item of cartItems) {
-        if (!productsCache[item.productId]) {
-          try {
-            const res = await api.get(`/products/${item.productId}`);
-            cache[item.productId] = res.data;
-          } catch (e) {
-            console.error(e);
-          }
-        }
-      }
-      if (Object.keys(cache).length > 0) {
-        setProductsCache(prev => ({ ...prev, ...cache }));
-      }
-    };
-    if (cartItems.length > 0) fetchProductDetails();
-  }, [cartItems]);
+    if (user && user.email) {
+      setShippingAddress(prev => ({ ...prev, email: user.email }));
+    }
+  }, [user]);
 
-  if (!user) return <div className="container" style={{ padding: '4rem 1rem' }}>Please <Link to="/login" style={{ color: 'var(--primary-color)' }}>login</Link> to view checkout.</div>;
-  if (cartItems.length === 0 && checkoutStep !== 'submitting') {
+  // Check if cart is empty
+  if (cartItems.length === 0 && checkoutStep !== 'submitting' && checkoutStep !== 'success') {
     return (
-      <div className="container" style={{ padding: '5rem 1rem', textAlign: 'center' }}>
-        <span style={{ fontSize: '3rem' }}>🛒</span>
-        <h2>Your Cart is empty</h2>
-        <p style={{ color: '#94a3b8', margin: '1rem 0 2rem' }}>Add some products to your cart before checking out!</p>
-        <Link to="/products" className="btn btn-primary">Go to Products</Link>
+      <div className="max-w-xl mx-auto px-4 py-20 text-center flex flex-col items-center">
+        <span className="text-6xl filter drop-shadow-md mb-6">🛒</span>
+        <h2 className="text-xl font-extrabold text-white">Your Shopping Basket is Empty</h2>
+        <p className="text-xs text-slate-400 mt-2 max-w-sm">
+          Please add some fandom merchandise to your cart before proceeding to checkout!
+        </p>
+        <Link 
+          to="/products" 
+          className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 transition-all"
+        >
+          Browse Merchandise
+        </Link>
       </div>
     );
   }
 
   // Calculate receipt totals
-  const subtotal = cartItems.reduce((acc, item) => {
-    const product = productsCache[item.productId] || { price: 0 };
-    return acc + (product.price * item.quantity);
-  }, 0);
-
-  const shippingCost = subtotal > 200 ? 0 : 9.99;
-  const tax = subtotal * 0.08;
-  const orderTotal = subtotal + shippingCost + tax;
+  const subtotal = getCartTotal();
+  const discountAmount = (subtotal * discountPercent) / 100;
+  const shippingCost = (subtotal - discountAmount) > 50 || (subtotal - discountAmount) === 0 ? 0 : 5.00;
+  const tax = (subtotal - discountAmount) * 0.08;
+  const orderTotal = subtotal - discountAmount + shippingCost + tax;
 
   const handleShippingChange = (e) => {
     const { name, value } = e.target;
@@ -87,6 +82,11 @@ function Checkout() {
   const validateShipping = () => {
     const newErrors = {};
     if (!shippingAddress.fullName.trim()) newErrors.fullName = 'Full Name is required';
+    if (!user && !shippingAddress.email.trim()) {
+      newErrors.email = 'Email address is required';
+    } else if (!user && !/\S+@\S+\.\S+/.test(shippingAddress.email)) {
+      newErrors.email = 'Enter a valid email address';
+    }
     if (!shippingAddress.address.trim()) newErrors.address = 'Street Address is required';
     if (!shippingAddress.city.trim()) newErrors.city = 'City is required';
     if (!shippingAddress.zip.trim()) newErrors.zip = 'ZIP/Postal code is required';
@@ -98,7 +98,6 @@ function Checkout() {
   const handleCardChange = (e) => {
     const { name, value } = e.target;
     if (name === 'number') {
-      // Formatter for card number
       const formatted = value.replace(/\s?/g, '').replace(/(\d{4})/g, '$1 ').trim().substring(0, 19);
       setCardDetails(prev => ({ ...prev, number: formatted }));
     } else if (name === 'expiry') {
@@ -121,7 +120,7 @@ function Checkout() {
     const newErrors = {};
     if (cardDetails.number.length < 19) newErrors.cardNumber = 'Enter a valid 16-digit card number';
     if (!cardDetails.name.trim()) newErrors.cardName = 'Cardholder name is required';
-    if (cardDetails.expiry.length < 5) newErrors.cardExpiry = 'Enter expiry date MM/YY';
+    if (cardDetails.expiry.length < 5) newErrors.cardExpiry = 'Enter MM/YY expiry';
     if (cardDetails.cvv.length < 3) newErrors.cardCvv = 'Enter 3-digit CVV';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -138,379 +137,573 @@ function Checkout() {
     if (!validatePayment()) return;
 
     setCheckoutStep('submitting');
-    try {
-      const displayMethod = paymentMethod === 'credit_card' ? 'Credit Card' : paymentMethod === 'paypal' ? 'PayPal' : 'Cash on Delivery';
-      await api.post('/orders/checkout', {
-        shippingAddress,
-        paymentMethod: displayMethod
-      });
-      alert("Order placed successfully! Thank you for shopping with us.");
-      clearCart();
-      navigate('/orders');
-    } catch (error) {
-      alert(error.response?.data?.error || "Checkout failed");
-      setCheckoutStep('payment');
+    
+    // Create local order ID
+    const localId = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    setPlacedOrderId(localId);
+
+    const displayMethod = paymentMethod === 'credit_card' 
+      ? 'Credit Card' 
+      : paymentMethod === 'paypal' 
+        ? 'PayPal' 
+        : 'Cash on Delivery';
+
+    // Attempt backend placement if logged in
+    let backendSuccess = false;
+    if (user) {
+      try {
+        await api.post('/orders/checkout', {
+          shippingAddress: {
+            fullName: shippingAddress.fullName,
+            address: shippingAddress.address,
+            city: shippingAddress.city,
+            zip: shippingAddress.zip,
+            country: shippingAddress.country,
+            phone: shippingAddress.phone
+          },
+          paymentMethod: displayMethod
+        });
+        backendSuccess = true;
+      } catch (error) {
+        console.error("Backend checkout failed, falling back to local history storage", error);
+      }
     }
+
+    // Save order details to client-side localStorage under user email or guest
+    const emailKey = user ? user.email : (shippingAddress.email || 'guest');
+    const storedOrdersKey = `orders_${emailKey}`;
+    
+    const localOrder = {
+      id: localId,
+      createdAt: new Date().toISOString(),
+      items: cartItems.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        price: item.product.price,
+        variant: item.variant
+      })),
+      total: orderTotal,
+      subtotal,
+      discountAmount,
+      shippingCost,
+      tax,
+      shippingAddress: {
+        fullName: shippingAddress.fullName,
+        email: emailKey,
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        zip: shippingAddress.zip,
+        country: shippingAddress.country,
+        phone: shippingAddress.phone
+      },
+      paymentMethod: displayMethod,
+      status: 'completed'
+    };
+
+    try {
+      const existingOrders = JSON.parse(localStorage.getItem(storedOrdersKey) || '[]');
+      existingOrders.unshift(localOrder);
+      localStorage.setItem(storedOrdersKey, JSON.stringify(existingOrders));
+    } catch (e) {
+      console.error("Error writing order to localStorage:", e);
+    }
+
+    // Process submission transition
+    setTimeout(() => {
+      setCheckoutStep('success');
+      clearCart();
+    }, 1500);
   };
 
-  return (
-    <div className="container" style={{ padding: '2rem 1rem', minHeight: '90vh' }}>
-      <h1 style={{ fontSize: '2.25rem', fontWeight: 800, marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <span>🔒</span> Secure Checkout
-      </h1>
+  const getCardTypeLogo = (num) => {
+    const cleanNum = num.replace(/\s+/g, '');
+    if (cleanNum.startsWith('4')) return '🇺🇸 Visa';
+    if (cleanNum.startsWith('5')) return '💳 Mastercard';
+    if (cleanNum.startsWith('3')) return '🌟 Amex';
+    return '🌐 Card';
+  };
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '3rem', alignItems: 'start' }}>
-        
-        {/* Left Column: Form Steps */}
-        <div className="glass" style={{ padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid var(--glass-border)' }}>
-          {/* Step Indicator Bullets */}
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: checkoutStep === 'shipping' ? 1 : 0.5, transition: 'opacity 0.2s' }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>1</span>
-              <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Shipping</span>
+  if (checkoutStep === 'success') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+        <div className="p-8 md:p-12 rounded-3xl glass border border-white/5 space-y-6 flex flex-col items-center">
+          {/* Animated Glowing Ring & Tick */}
+          <div className="h-20 w-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-3xl text-emerald-400 animate-pulse shadow-lg shadow-emerald-500/10">
+            ✓
+          </div>
+          
+          <div className="space-y-2">
+            <h1 className="text-2xl md:text-3xl font-black text-white tracking-wide">
+              Order Placed Successfully!
+            </h1>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto leading-relaxed">
+              Thank you for shopping with Fandom Store! Your merchandise receipt is ready, and your magic parcel is being packed.
+            </p>
+          </div>
+
+          {/* Local Order Reference */}
+          <div className="p-4 rounded-2xl bg-slate-950/80 border border-white/5 w-full max-w-md font-mono text-left space-y-2.5 text-xs text-slate-400">
+            <div className="flex justify-between border-b border-white/5 pb-2">
+              <span>Order Reference:</span>
+              <strong className="text-white font-extrabold uppercase">{placedOrderId.replace('ord_', '#')}</strong>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: checkoutStep === 'payment' ? 1 : 0.5, transition: 'opacity 0.2s' }}>
-              <span style={{ width: 24, height: 24, borderRadius: '50%', background: checkoutStep === 'payment' ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 700 }}>2</span>
-              <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>Payment</span>
+            <div className="flex justify-between">
+              <span>Recipient Email:</span>
+              <span className="text-slate-200">{user ? user.email : shippingAddress.email}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Final Total Paid:</span>
+              <strong className="text-brand-accent font-extrabold">${orderTotal.toFixed(2)}</strong>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md pt-4">
+            <button
+              onClick={() => navigate('/orders')}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all"
+            >
+              View Order History 📦
+            </button>
+            <Link
+              to="/products"
+              className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 font-bold text-xs text-center transition-all active:scale-95"
+            >
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
+      
+      {/* Back to Home Button */}
+      <div className="pt-4 mb-6">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <span>←</span> Back to Home
+        </Link>
+      </div>
+
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <span className="text-3xl filter drop-shadow-md">🔒</span>
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-wide">Secure Checkout</h1>
+          <p className="text-xs text-slate-400 mt-1">Provide your delivery information and finalize your payment</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        
+        {/* Left Column: Checkout Multi-step Form */}
+        <div className="lg:col-span-2 p-6 md:p-8 rounded-3xl glass border border-white/5 space-y-6">
+          
+          {/* Custom Visual Timeline Timeline */}
+          <div className="flex items-center gap-4 pb-4 border-b border-white/5">
+            <div className={`flex items-center gap-2 transition-all ${checkoutStep === 'shipping' ? 'opacity-100 scale-105' : 'opacity-50'}`}>
+              <span className="h-7 w-7 rounded-full bg-brand-primary text-white flex items-center justify-center font-bold text-xs">
+                1
+              </span>
+              <span className="text-xs font-bold text-white tracking-wide">Shipping Address</span>
+            </div>
+            
+            <div className="flex-1 h-px bg-white/5" />
+
+            <div className={`flex items-center gap-2 transition-all ${checkoutStep === 'payment' ? 'opacity-100 scale-105' : 'opacity-50'}`}>
+              <span className={`h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs ${checkoutStep === 'payment' ? 'bg-brand-primary text-white' : 'bg-slate-900 border border-white/10 text-slate-400'}`}>
+                2
+              </span>
+              <span className="text-xs font-bold text-slate-200 tracking-wide">Secure Payment</span>
             </div>
           </div>
 
           {checkoutStep === 'shipping' && (
-            <form onSubmit={handleNextToPayment}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Shipping Information</h2>
+            <form onSubmit={handleNextToPayment} className="space-y-4 pt-2">
+              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest">Shipping Information</h2>
               
-              <div className="form-group">
-                <label className="form-label">Full Name</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={shippingAddress.fullName}
-                  onChange={handleShippingChange}
-                  className="form-input"
-                  placeholder="John Doe"
-                />
-                {errors.fullName && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.fullName}</div>}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Full Name</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={shippingAddress.fullName}
+                    onChange={handleShippingChange}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
+                    placeholder="Harry Potter"
+                  />
+                  {errors.fullName && <div className="text-red-400 text-[10px] font-bold">{errors.fullName}</div>}
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={shippingAddress.email}
+                    disabled={!!user}
+                    onChange={handleShippingChange}
+                    className={`w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="wizard@hogwarts.edu"
+                  />
+                  {errors.email && <div className="text-red-400 text-[10px] font-bold">{errors.email}</div>}
+                </div>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Street Address</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Street Address</label>
                 <input
                   type="text"
                   name="address"
                   value={shippingAddress.address}
                   onChange={handleShippingChange}
-                  className="form-input"
-                  placeholder="123 Main St, Apt 4B"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
+                  placeholder="4 Privet Drive"
                 />
-                {errors.address && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.address}</div>}
+                {errors.address && <div className="text-red-400 text-[10px] font-bold">{errors.address}</div>}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">City</label>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">City</label>
                   <input
                     type="text"
                     name="city"
                     value={shippingAddress.city}
                     onChange={handleShippingChange}
-                    className="form-input"
-                    placeholder="New York"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
+                    placeholder="Little Whinging"
                   />
-                  {errors.city && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.city}</div>}
+                  {errors.city && <div className="text-red-400 text-[10px] font-bold">{errors.city}</div>}
                 </div>
-                <div className="form-group">
-                  <label className="form-label">ZIP / Postal Code</label>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">ZIP / Postal Code</label>
                   <input
                     type="text"
                     name="zip"
                     value={shippingAddress.zip}
                     onChange={handleShippingChange}
-                    className="form-input"
-                    placeholder="10001"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
+                    placeholder="SUR 3EJ"
                   />
-                  {errors.zip && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.zip}</div>}
+                  {errors.zip && <div className="text-red-400 text-[10px] font-bold">{errors.zip}</div>}
                 </div>
-              </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Country</label>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase">Country</label>
                   <input
                     type="text"
                     name="country"
                     value={shippingAddress.country}
                     onChange={handleShippingChange}
-                    className="form-input"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
                   />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Phone Number</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    value={shippingAddress.phone}
-                    onChange={handleShippingChange}
-                    className="form-input"
-                    placeholder="(555) 000-0000"
-                  />
-                  {errors.phone && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.phone}</div>}
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-block" style={{ marginTop: '1.5rem', padding: '0.85rem', borderRadius: '0.75rem' }}>
-                Continue to Payment →
-              </button>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase">Phone Number</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={shippingAddress.phone}
+                  onChange={handleShippingChange}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden"
+                  placeholder="+44 7700 900077"
+                />
+                {errors.phone && <div className="text-red-400 text-[10px] font-bold">{errors.phone}</div>}
+              </div>
+
+              <div className="pt-4 flex justify-between items-center">
+                <Link to="/cart" className="text-xs text-slate-400 hover:text-white font-bold transition-all">
+                  ← Back to Cart
+                </Link>
+                <button 
+                  type="submit" 
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                >
+                  Continue to Payment →
+                </button>
+              </div>
             </form>
           )}
 
           {checkoutStep === 'payment' && (
-            <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Payment Method</h2>
+            <div className="space-y-6 pt-2">
+              <h2 className="text-sm font-bold text-slate-300 uppercase tracking-widest">Select Payment Method</h2>
               
-              {/* Payment Select Tabs */}
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+              {/* Payment Tabs */}
+              <div className="grid grid-cols-3 gap-3">
                 {[
-                  { id: 'credit_card', label: '💳 Card' },
-                  { id: 'paypal', label: '🅿️ PayPal' },
-                  { id: 'cod', label: '💵 COD' }
+                  { id: 'credit_card', label: '💳 Card', desc: 'Secure Credit Card' },
+                  { id: 'paypal', label: '🅿️ PayPal', desc: 'PayPal Account' },
+                  { id: 'cod', label: '💵 COD', desc: 'Cash on Delivery' }
                 ].map(method => (
                   <button
                     key={method.id}
                     onClick={() => { setPaymentMethod(method.id); setErrors({}); }}
-                    style={{
-                      flex: 1,
-                      padding: '0.75rem',
-                      borderRadius: '0.5rem',
-                      background: paymentMethod === method.id ? 'var(--primary-color)' : 'rgba(255,255,255,0.05)',
-                      color: '#fff',
-                      fontWeight: 600,
-                      border: paymentMethod === method.id ? '1px solid var(--primary-hover)' : '1px solid rgba(255,255,255,0.08)',
-                    }}
+                    className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${paymentMethod === method.id ? 'bg-brand-primary/10 border-brand-primary text-white ring-2 ring-brand-primary/10 scale-102' : 'bg-slate-950/40 border-white/5 text-slate-400 hover:border-white/10 hover:text-slate-300'}`}
                   >
-                    {method.label}
+                    <div className="text-sm font-extrabold">{method.label}</div>
+                    <div className="text-[9px] text-slate-500 mt-1 font-semibold">{method.desc}</div>
                   </button>
                 ))}
               </div>
 
               {paymentMethod === 'credit_card' && (
-                <div>
-                  {/* Interactive Glowing Mock Credit Card Widget */}
-                  <div style={{
-                    width: '100%',
-                    height: '190px',
-                    borderRadius: '1rem',
-                    background: 'linear-gradient(135deg, #1d4ed8, #8b5cf6, #ec4899)',
-                    boxShadow: '0 8px 32px rgba(139,92,246,0.3)',
-                    padding: '1.5rem',
-                    color: '#fff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    marginBottom: '2rem',
-                    border: '1px solid rgba(255,255,255,0.2)'
-                  }}>
-                    {/* Glass Overlay Glow */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '-50%',
-                      left: '-50%',
-                      width: '200%',
-                      height: '200%',
-                      background: 'radial-gradient(circle, rgba(255,255,255,0.12) 0%, transparent 70%)',
-                      pointerEvents: 'none'
-                    }} />
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1 }}>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '0.05em' }}>NEXUS CARD</span>
-                      <span style={{ fontSize: '1.5rem' }}>🌐</span>
-                    </div>
-
-                    <div style={{ zIndex: 1 }}>
-                      {/* Sim Chip Icon */}
-                      <div style={{ width: '36px', height: '26px', background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', borderRadius: '0.25rem', marginBottom: '0.75rem', opacity: 0.85 }} />
-                      <div style={{ fontSize: '1.35rem', fontFamily: 'monospace', letterSpacing: '2px', fontWeight: 700 }}>
-                        {cardDetails.number || '•••• •••• •••• ••••'}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', zIndex: 1 }}>
-                      <div>
-                        <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>Cardholder</div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600, letterSpacing: '0.5px' }}>
-                          {cardDetails.name.toUpperCase() || 'YOUR NAME'}
+                <div className="space-y-6">
+                  
+                  {/* Interactive Glowing Holographic 3D Flipping Credit Card Widget */}
+                  <div className="relative w-full max-w-sm mx-auto h-48 md:h-52 [perspective:1000px] select-none my-2">
+                    <div className={`relative w-full h-full rounded-2xl transition-transform duration-700 [transform-style:preserve-3d] ${isCardFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+                      
+                      {/* Front Side */}
+                      <div className="absolute inset-0 w-full h-full rounded-2xl p-5 bg-gradient-to-tr from-brand-primary via-purple-700 to-brand-accent border border-white/20 text-white shadow-2xl [backface-visibility:hidden] flex flex-col justify-between overflow-hidden">
+                        {/* Glowing reflection gloss */}
+                        <div className="absolute -inset-x-20 -top-20 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                        
+                        <div className="flex justify-between items-center z-10">
+                          <span className="text-[10px] font-black tracking-widest text-slate-200">FANDOM NEXUS CARD</span>
+                          <span className="text-xs font-black bg-white/15 px-2 py-0.5 rounded border border-white/10">
+                            {getCardTypeLogo(cardDetails.number)}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 z-10 mt-1">
+                          <div className="w-9 h-6.5 rounded bg-gradient-to-br from-amber-300 to-amber-500 shadow-md border border-amber-200/20" />
+                          <svg className="w-5 h-5 text-slate-300 opacity-80" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a9 9 0 0 1-9-9v-1.5m9 10.5a12 12 0 0 0 12-12V6m-12 12a15 15 0 0 1-15-15V3" />
+                          </svg>
+                        </div>
+                        
+                        <div className="z-10 py-1">
+                          <div className="text-base md:text-lg font-mono tracking-[3px] font-black text-white/95 text-center">
+                            {cardDetails.number || '•••• •••• •••• ••••'}
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between items-end z-10">
+                          <div className="min-w-0 pr-2">
+                            <div className="text-[7px] uppercase tracking-wider text-slate-300 font-bold">Cardholder</div>
+                            <div className="text-[11px] font-extrabold text-white truncate max-w-[200px] uppercase">
+                              {cardDetails.name || 'YOUR NAME'}
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <div className="text-[7px] uppercase tracking-wider text-slate-300 font-bold">Expires</div>
+                            <div className="text-[11px] font-mono font-extrabold text-white">
+                              {cardDetails.expiry || 'MM/YY'}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '1rem' }}>
-                        <div>
-                          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>Expires</div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{cardDetails.expiry || 'MM/YY'}</div>
+
+                      {/* Back Side */}
+                      <div className="absolute inset-0 w-full h-full rounded-2xl bg-slate-900 border border-white/20 text-white shadow-2xl [backface-visibility:hidden] [transform:rotateY(180deg)] flex flex-col justify-between py-5 overflow-hidden">
+                        {/* Magnetic Strip */}
+                        <div className="w-full h-9 bg-slate-950 mt-1" />
+                        
+                        {/* Signature & CVV Panel */}
+                        <div className="px-5 flex items-center gap-3 mt-4">
+                          <div className="flex-1 h-7 bg-slate-200 rounded flex items-center justify-end px-3 text-slate-800 font-mono italic font-bold text-[10px] select-none">
+                            {cardDetails.name ? cardDetails.name.substring(0, 15) : 'Authorized Signature'}
+                          </div>
+                          <div className="w-12 h-7 bg-white text-slate-950 rounded flex items-center justify-center font-mono font-black text-xs tracking-wider shadow-inner border border-slate-300">
+                            {cardDetails.cvv || '•••'}
+                          </div>
                         </div>
-                        <div>
-                          <div style={{ fontSize: '0.65rem', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', letterSpacing: '1px' }}>CVV</div>
-                          <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>{cardDetails.cvv || '•••'}</div>
+                        
+                        <div className="px-5 text-[7px] text-slate-500 leading-normal text-justify mt-2">
+                          This card is issued by Fandom Nexus Bank. By using this card, you agree to all terms and conditions.
                         </div>
                       </div>
+
                     </div>
                   </div>
 
                   {/* Form fields for Card */}
-                  <div className="form-group">
-                    <label className="form-label">Card Number</label>
-                    <input
-                      type="text"
-                      name="number"
-                      value={cardDetails.number}
-                      onChange={handleCardChange}
-                      className="form-input"
-                      placeholder="4000 1234 5678 9010"
-                    />
-                    {errors.cardNumber && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.cardNumber}</div>}
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Cardholder Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={cardDetails.name}
-                      onChange={handleCardChange}
-                      className="form-input"
-                      placeholder="JOHN DOE"
-                    />
-                    {errors.cardName && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.cardName}</div>}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Expiration Date</label>
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Card Number</label>
                       <input
                         type="text"
-                        name="expiry"
-                        value={cardDetails.expiry}
+                        name="number"
+                        value={cardDetails.number}
                         onChange={handleCardChange}
-                        className="form-input"
-                        placeholder="MM/YY"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden font-mono"
+                        placeholder="4000 1234 5678 9010"
                       />
-                      {errors.cardExpiry && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.cardExpiry}</div>}
+                      {errors.cardNumber && <div className="text-red-400 text-[10px] font-bold">{errors.cardNumber}</div>}
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">CVV</label>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase">Cardholder Name</label>
                       <input
-                        type="password"
-                        name="cvv"
-                        value={cardDetails.cvv}
+                        type="text"
+                        name="name"
+                        value={cardDetails.name}
                         onChange={handleCardChange}
-                        className="form-input"
-                        placeholder="123"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden uppercase"
+                        placeholder="HARRY POTTER"
                       />
-                      {errors.cardCvv && <div style={{ color: 'var(--danger-color)', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.cardCvv}</div>}
+                      {errors.cardName && <div className="text-red-400 text-[10px] font-bold">{errors.cardName}</div>}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">Expiration Date</label>
+                        <input
+                          type="text"
+                          name="expiry"
+                          value={cardDetails.expiry}
+                          onChange={handleCardChange}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden font-mono"
+                          placeholder="MM/YY"
+                        />
+                        {errors.cardExpiry && <div className="text-red-400 text-[10px] font-bold">{errors.cardExpiry}</div>}
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase">CVV</label>
+                        <input
+                          type="password"
+                          name="cvv"
+                          value={cardDetails.cvv}
+                          onChange={handleCardChange}
+                          onFocus={handleCvvFocus}
+                          onBlur={handleCvvBlur}
+                          className="w-full px-4 py-2.5 rounded-xl bg-slate-950/80 border border-white/10 text-xs text-slate-200 focus:border-brand-primary outline-hidden font-mono"
+                          placeholder="123"
+                        />
+                        {errors.cardCvv && <div className="text-red-400 text-[10px] font-bold">{errors.cardCvv}</div>}
+                      </div>
                     </div>
                   </div>
+
                 </div>
               )}
 
               {paymentMethod === 'paypal' && (
-                <div style={{ textAlign: 'center', padding: '2rem 1.5rem', background: 'rgba(59,130,246,0.08)', borderRadius: '1rem', border: '1px dashed rgba(59,130,246,0.3)', marginBottom: '2rem' }}>
-                  <span style={{ fontSize: '2.5rem' }}>🅿️</span>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0.5rem 0' }}>PayPal Express Checkout</h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>You will be redirected to PayPal to complete your payment securely after placing the order.</p>
+                <div className="text-center p-8 bg-blue-500/5 border border-dashed border-blue-500/20 rounded-2xl my-2">
+                  <span className="text-4xl filter drop-shadow-md">🅿️</span>
+                  <h3 className="text-sm font-bold text-slate-200 mt-3">PayPal Express Checkout</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
+                    You will be redirected securely to the PayPal portal to approve your transaction after clicking 'Place Order'.
+                  </p>
                 </div>
               )}
 
               {paymentMethod === 'cod' && (
-                <div style={{ textAlign: 'center', padding: '2rem 1.5rem', background: 'rgba(16,185,129,0.08)', borderRadius: '1rem', border: '1px dashed rgba(16,185,129,0.3)', marginBottom: '2rem' }}>
-                  <span style={{ fontSize: '2.5rem' }}>💵</span>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0.5rem 0' }}>Cash on Delivery</h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>Pay with cash upon physical delivery. No prepayment required.</p>
+                <div className="text-center p-8 bg-emerald-500/5 border border-dashed border-emerald-500/20 rounded-2xl my-2">
+                  <span className="text-4xl filter drop-shadow-md">💵</span>
+                  <h3 className="text-sm font-bold text-slate-200 mt-3">Cash on Delivery</h3>
+                  <p className="text-xs text-slate-400 mt-2 max-w-sm mx-auto leading-relaxed">
+                    Zero prepayment required! Pay with physical cash, secure card, or mobile transfer instantly upon delivery.
+                  </p>
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+              <div className="pt-4 flex justify-between items-center gap-4">
                 <button
                   onClick={() => setCheckoutStep('shipping')}
-                  className="btn"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid var(--glass-border)', color: '#f8fafc', padding: '0.85rem 1.5rem', borderRadius: '0.75rem' }}
+                  className="px-5 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 font-bold text-xs transition-all active:scale-95"
                 >
-                  Back
+                  Back to Address
                 </button>
                 <button
                   onClick={handlePlaceOrder}
-                  className="btn btn-primary"
-                  style={{ flex: 1, padding: '0.85rem', borderRadius: '0.75rem' }}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all text-center"
                 >
                   Place Order & Pay 🚀
                 </button>
               </div>
+
             </div>
           )}
 
           {checkoutStep === 'submitting' && (
-            <div style={{ textAlign: 'center', padding: '4rem 1rem' }}>
-              <div style={{
-                border: '4px solid rgba(255,255,255,0.1)',
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                borderLeftColor: 'var(--primary-color)',
-                animation: 'spin 1s linear infinite',
-                margin: '0 auto 1.5rem'
-              }} />
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Processing Your Order...</h3>
-              <p style={{ color: '#94a3b8', marginTop: '0.5rem' }}>Please do not refresh or close this window.</p>
-              
-              <style>{`
-                @keyframes spin {
-                  0% { transform: rotate(0deg); }
-                  100% { transform: rotate(360deg); }
-                }
-              `}</style>
+            <div className="text-center py-16 space-y-4">
+              <div className="border-4 border-white/10 w-12 h-12 rounded-full border-l-brand-primary animate-spin mx-auto" />
+              <h3 className="text-base font-extrabold text-white">Validating and Processing Order...</h3>
+              <p className="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                Securing your payment and sending your details. Please do not close or reload this browser.
+              </p>
             </div>
           )}
+
         </div>
 
-        {/* Right Column: Order Summary Receipt */}
-        <div className="glass" style={{ padding: '2.5rem', borderRadius: '1.5rem', border: '1px solid var(--glass-border)', position: 'sticky', top: '100px' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>Order Summary</h2>
+        {/* Right Column: Order Summary Receipt Grid */}
+        <div className="p-6 rounded-3xl glass border border-white/5 space-y-5 lg:sticky lg:top-24">
+          <h2 className="text-sm font-bold text-slate-200 uppercase tracking-widest pb-3 border-b border-white/5">
+            Order Receipt Summary
+          </h2>
           
-          <div style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          {/* Scrollable Items Stack */}
+          <div className="max-h-60 overflow-y-auto space-y-4 pr-1">
             {cartItems.map((item, idx) => {
-              const product = productsCache[item.productId] || {};
+              const product = item.product;
+              const displayImage = product.images && product.images.length > 0 ? product.images[0] : '';
               return (
-                <div key={idx} style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', alignItems: 'center' }}>
-                  <img src={product.imageUrl} alt={product.name} style={{ width: '48px', height: '48px', borderRadius: '0.5rem', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.05)' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h4 style={{ fontSize: '0.9rem', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{product.name || 'Loading...'}</h4>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Qty: {item.quantity}</span>
+                <div key={idx} className="flex gap-3 items-center">
+                  <img 
+                    src={displayImage} 
+                    alt={product.title} 
+                    className="w-11 h-11 rounded-lg object-cover border border-white/5 flex-shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs font-bold text-white truncate">{product.title}</h4>
+                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                      Qty: {item.quantity} {item.variant ? `(${item.variant})` : ''}
+                    </span>
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
-                    ${((product.price || 0) * item.quantity).toFixed(2)}
+                  <div className="text-xs font-black text-slate-200 flex-shrink-0">
+                    ${(product.price * item.quantity).toFixed(2)}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.95rem', color: '#cbd5e1' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Subtotal</span>
-              <span style={{ color: '#fff', fontWeight: 600 }}>${subtotal.toFixed(2)}</span>
+          <div className="h-px bg-white/5" />
+
+          {/* Pricing breakdowns */}
+          <div className="space-y-2.5 text-xs text-slate-400">
+            <div className="flex justify-between">
+              <span>Items Subtotal</span>
+              <span className="font-bold text-slate-200">${subtotal.toFixed(2)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Shipping Cost</span>
-              <span style={{ color: shippingCost === 0 ? '#10b981' : '#fff', fontWeight: 600 }}>
+            
+            {discountPercent > 0 && (
+              <div className="flex justify-between text-emerald-400 font-semibold">
+                <span>FANDOM20 Code (-20%)</span>
+                <span>-${discountAmount.toFixed(2)}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between">
+              <span>Standard Shipping</span>
+              <span className="font-bold text-slate-200">
                 {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
               </span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+
+            <div className="flex justify-between">
               <span>Estimated Tax (8%)</span>
-              <span style={{ color: '#fff', fontWeight: 600 }}>${tax.toFixed(2)}</span>
+              <span className="font-bold text-slate-200">${tax.toFixed(2)}</span>
             </div>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.25rem', color: '#fff', fontWeight: 800, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-              <span>Total</span>
-              <span style={{ color: 'var(--accent-color)' }}>${orderTotal.toFixed(2)}</span>
+
+            <div className="h-px bg-white/5 !my-3" />
+
+            <div className="flex justify-between items-center text-sm">
+              <span className="font-bold text-slate-200">Final Order Balance:</span>
+              <span className="text-lg font-black text-brand-accent">${orderTotal.toFixed(2)}</span>
             </div>
           </div>
         </div>

@@ -4,51 +4,79 @@ import { Link } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 
 function Wishlist() {
-  const { wishlistItems } = useWishlist();
+  const { wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
+  const handleMoveToCart = (productId) => {
+    // Add to cart and remove from wishlist
+    addToCart(productId, 1);
+    removeFromWishlist(productId);
+    alert("Moved item to your shopping cart!");
+  };
+
   return (
-    <div className="container" style={{ padding: '2rem 1rem', minHeight: '80vh' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2.5rem' }}>
-        <span style={{ fontSize: '2rem' }}>❤️</span>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0 }}>My Wishlist</h1>
+    <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
+      
+      {/* Back to Home Button */}
+      <div className="pt-4 mb-6">
+        <Link 
+          to="/" 
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+        >
+          <span>←</span> Back to Home
+        </Link>
+      </div>
+
+      {/* Page Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <span className="text-3xl filter drop-shadow-md">❤️</span>
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-wide">My Wishlist</h1>
+          <p className="text-xs text-slate-400 mt-1">Keep track of your favorite fandom merchandise and replicas</p>
+        </div>
       </div>
 
       {wishlistItems.length === 0 ? (
-        <div style={{
-          textAlign: 'center',
-          padding: '5rem 2rem',
-          background: 'var(--glass-bg)',
-          backdropFilter: 'blur(12px)',
-          border: '1px solid var(--glass-border)',
-          borderRadius: '1.5rem',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          maxWidth: '600px',
-          margin: '0 auto',
-        }}>
-          <span style={{ fontSize: '4rem', display: 'block', marginBottom: '1.5rem' }}>🤍</span>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.75rem' }}>Wishlist is empty</h2>
-          <p style={{ color: '#94a3b8', marginBottom: '2rem', fontSize: '1rem', lineHeight: 1.6 }}>
-            Tap the heart icon on any product to save it here for later. Find something you love today!
+        <div className="flex flex-col items-center justify-center text-center p-16 glass rounded-3xl border border-white/5 max-w-xl mx-auto">
+          <span className="text-5xl filter drop-shadow-md mb-6">🤍</span>
+          <h2 className="text-lg font-extrabold text-white">Your Wishlist is Empty</h2>
+          <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
+            You haven't saved any fandom items yet. Click the heart icon on any product page or catalog card to keep it here!
           </p>
-          <Link to="/products" className="btn btn-primary" style={{ padding: '0.85rem 2rem', borderRadius: '0.75rem' }}>
+          <Link 
+            to="/products" 
+            className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 transition-all"
+          >
             Discover Products
           </Link>
         </div>
       ) : (
-        <div>
-          <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>
-            You have {wishlistItems.length} {wishlistItems.length === 1 ? 'item' : 'items'} saved in your wishlist.
+        <div className="space-y-6">
+          <p className="text-xs text-slate-400">
+            You have saved <b>{wishlistItems.length}</b> {wishlistItems.length === 1 ? 'item' : 'items'} in your wishlist.
           </p>
-          <div className="product-grid">
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {wishlistItems.map(product => (
-              <ProductCard key={product._id} product={product} />
+              <div key={product.id} className="relative group">
+                <ProductCard product={product} />
+                
+                {/* Move to Cart Floating Action Button */}
+                <button
+                  onClick={() => handleMoveToCart(product.id)}
+                  className="absolute bottom-20 left-4 right-4 z-10 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-[10px] font-bold text-white text-center backdrop-blur-md opacity-0 group-hover:opacity-100 active:scale-95 transition-all duration-300"
+                >
+                  Move to Shopping Cart ⚡
+                </button>
+              </div>
             ))}
           </div>
         </div>
       )}
+
     </div>
   );
 }
 
 export default Wishlist;
+
