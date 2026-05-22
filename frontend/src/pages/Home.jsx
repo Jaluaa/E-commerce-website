@@ -258,10 +258,10 @@ function Home() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-16 pb-20">
+    <div className="max-w-7xl mx-auto px-4 md:px-8 space-y-16 pb-20 animate-fade-in-up">
       
       {/* Sliding Hero Carousel Banner */}
-      <div className="relative rounded-3xl overflow-hidden glass h-[460px] md:h-[500px]">
+      <div className="relative rounded-3xl overflow-hidden glass h-[460px] md:h-[500px] animate-fade-in-up">
         {/* Background Slide Image */}
         <div className="absolute inset-0 bg-slate-950/60 z-1" />
         <img 
@@ -293,7 +293,7 @@ function Home() {
             />
             <button 
               type="submit" 
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-brand-primary/20"
+              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-brand-primary/20 shimmer-btn"
             >
               Search
             </button>
@@ -302,7 +302,7 @@ function Home() {
           <div className="flex gap-4 pt-2 justify-center">
             <Link 
               to={slides[currentSlide].link}
-              className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs transition-all"
+              className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white font-bold text-xs transition-all shimmer-btn"
             >
               Explore Collection →
             </Link>
@@ -323,7 +323,7 @@ function Home() {
       </div>
 
       {/* Shop by Fandom Category Grid */}
-      <section className="space-y-6">
+      <section className="space-y-6 animate-fade-in-up delay-100">
         <div>
           <h2 className="text-2xl font-black text-white tracking-wide">Shop by Fandom</h2>
           <p className="text-xs text-slate-400 mt-1">Select your favorite realm of magic, sitcom, or music</p>
@@ -369,7 +369,7 @@ function Home() {
       </section>
 
       {/* Featured / Trending items */}
-      <section className="space-y-6">
+      <section className="space-y-6 animate-fade-in-up delay-200">
         <div className="flex justify-between items-end">
           <div>
             <h2 className="text-2xl font-black text-white tracking-wide">Featured Merchandise</h2>
@@ -391,7 +391,7 @@ function Home() {
       </section>
 
       {/* Trust & Features Banner */}
-      <section className="p-6 md:p-8 rounded-3xl glass border border-white/5 bg-slate-900/30">
+      <section className="p-6 md:p-8 rounded-3xl glass border border-white/5 bg-slate-900/30 animate-fade-in-up delay-300">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {[
             { icon: '🚚', title: 'Free Shipping', desc: 'On all orders above ₹500.00' },

@@ -72,7 +72,7 @@ function Checkout() {
   // Check if cart is empty
   if (cartItems.length === 0 && checkoutStep !== 'submitting' && checkoutStep !== 'success') {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center flex flex-col items-center">
+      <div className="max-w-xl mx-auto px-4 py-20 text-center flex flex-col items-center animate-fade-in-up delay-150">
         <span className="text-6xl filter drop-shadow-md mb-6">🛒</span>
         <h2 className="text-xl font-extrabold text-white">Your Shopping Basket is Empty</h2>
         <p className="text-xs text-slate-400 mt-2 max-w-sm">
@@ -80,7 +80,7 @@ function Checkout() {
         </p>
         <Link 
           to="/products" 
-          className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 transition-all"
+          className="mt-6 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 transition-all shimmer-btn"
         >
           Browse Merchandise
         </Link>
@@ -357,7 +357,7 @@ function Checkout() {
   if (checkoutStep === 'success') {
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-        <div className="p-8 md:p-12 rounded-3xl glass border border-white/5 space-y-6 flex flex-col items-center">
+        <div className="p-8 md:p-12 rounded-3xl glass border border-white/5 space-y-6 flex flex-col items-center animate-fade-in-up">
           {/* Animated Glowing Ring & Tick */}
           <div className="h-20 w-20 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30 flex items-center justify-center text-3xl text-emerald-400 animate-pulse shadow-lg shadow-emerald-500/10">
             ✓
@@ -391,7 +391,7 @@ function Checkout() {
           <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md pt-4">
             <button
               onClick={() => navigate('/orders')}
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all shimmer-btn"
             >
               View Order History 📦
             </button>
@@ -411,7 +411,7 @@ function Checkout() {
     <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
       
       {/* Back to Home Button */}
-      <div className="pt-4 mb-6">
+      <div className="pt-4 mb-6 animate-fade-in-up">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
@@ -421,7 +421,7 @@ function Checkout() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-8 animate-fade-in-up delay-75">
         <span className="text-3xl filter drop-shadow-md">🔒</span>
         <div>
           <h1 className="text-3xl font-black text-white tracking-wide">Secure Checkout</h1>
@@ -432,7 +432,7 @@ function Checkout() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
         
         {/* Left Column: Checkout Multi-step Form */}
-        <div className="lg:col-span-2 p-6 md:p-8 rounded-3xl glass border border-white/5 space-y-6">
+        <div className="lg:col-span-2 p-6 md:p-8 rounded-3xl glass border border-white/5 space-y-6 animate-fade-in-up delay-150">
           
           {/* Custom Visual Timeline Timeline */}
           <div className="flex items-center gap-4 pb-4 border-b border-white/5">
@@ -557,7 +557,7 @@ function Checkout() {
                 </Link>
                 <button 
                   type="submit" 
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all shimmer-btn"
                 >
                   Continue to Payment →
                 </button>
@@ -751,7 +751,7 @@ function Checkout() {
                 </button>
                 <button
                   onClick={handlePlaceOrder}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all text-center"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-xs shadow-lg hover:brightness-110 active:scale-95 transition-all text-center shimmer-btn"
                 >
                   Place Order & Pay 🚀
                 </button>
@@ -773,7 +773,7 @@ function Checkout() {
         </div>
 
         {/* Right Column: Order Summary Receipt Grid */}
-        <div className="p-6 rounded-3xl glass border border-white/5 space-y-5 lg:sticky lg:top-24">
+        <div className="p-6 rounded-3xl glass border border-white/5 space-y-5 lg:sticky lg:top-24 animate-fade-in-up delay-200">
           <h2 className="text-sm font-bold text-slate-200 uppercase tracking-widest pb-3 border-b border-white/5">
             Order Receipt Summary
           </h2>
@@ -921,7 +921,7 @@ function Checkout() {
                     showToast("Simulated validation error.", "error");
                   }
                 }}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-emerald-500/10 cursor-pointer text-center"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:brightness-110 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-emerald-500/10 cursor-pointer text-center shimmer-btn"
               >
                 Simulate Payment Success ✨
               </button>

@@ -90,7 +90,7 @@ function Signup() {
   return (
     <div className="min-h-[80vh] flex flex-col justify-center items-center px-4 py-12">
       {/* Back to Home Button */}
-      <div className="mb-6 w-full max-w-md text-left">
+      <div className="mb-6 w-full max-w-md text-left animate-fade-in-up">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
@@ -99,7 +99,7 @@ function Signup() {
         </Link>
       </div>
 
-      <div className="w-full max-w-md premium-card rounded-2xl p-8 md:p-10 shadow-2xl flex flex-col gap-6 relative">
+      <div className="w-full max-w-md premium-card rounded-2xl p-8 md:p-10 shadow-2xl flex flex-col gap-6 relative animate-fade-in-up delay-75">
         {!showVerification ? (
           <>
             <div className="text-center">
@@ -210,7 +210,7 @@ function Signup() {
 
               <button
                 type="submit"
-                className="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-110 hover:shadow-blue-500/30 active:scale-[0.98] text-white font-bold transition-all shadow-lg shadow-blue-500/10 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+                className="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-110 hover:shadow-blue-500/30 active:scale-[0.98] text-white font-bold transition-all shadow-lg shadow-blue-500/10 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 text-sm shimmer-btn"
                 style={{ opacity: loading ? 0.7 : 1 }}
                 disabled={loading}
               >
@@ -265,7 +265,7 @@ function Signup() {
 
               <button
                 type="submit"
-                className="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-110 hover:shadow-blue-500/30 active:scale-[0.98] text-white font-bold transition-all shadow-lg shadow-blue-500/10 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+                className="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:brightness-110 hover:shadow-blue-500/30 active:scale-[0.98] text-white font-bold transition-all shadow-lg shadow-blue-500/10 cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50 text-sm shimmer-btn"
                 style={{ opacity: loading ? 0.7 : 1 }}
                 disabled={loading}
               >

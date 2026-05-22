@@ -42,7 +42,7 @@ function Cart() {
     <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
       
       {/* Back to Home Button */}
-      <div className="pt-4 mb-6">
+      <div className="pt-4 mb-6 animate-fade-in-up">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
@@ -52,7 +52,7 @@ function Cart() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
+      <div className="flex items-center gap-3 mb-8 animate-fade-in-up delay-75">
         <span className="text-3xl filter drop-shadow-md">🛒</span>
         <div>
           <h1 className="text-3xl font-black text-white tracking-wide">Shopping Basket</h1>
@@ -61,7 +61,7 @@ function Cart() {
       </div>
 
       {cartItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center text-center p-16 glass rounded-3xl border border-white/5 max-w-xl mx-auto">
+        <div className="flex flex-col items-center justify-center text-center p-16 glass rounded-3xl border border-white/5 max-w-xl mx-auto animate-fade-in-up delay-150">
           <span className="text-5xl filter drop-shadow-md mb-6">🛍️</span>
           <h2 className="text-lg font-extrabold text-white">Your Shopping Cart is Empty</h2>
           <p className="text-xs text-slate-400 mt-2 max-w-sm leading-relaxed">
@@ -78,7 +78,7 @@ function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           {/* Basket List (Left Column) */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-2 space-y-4 animate-fade-in-up delay-150">
             {cartItems.map((item, idx) => {
               const product = item.product;
               const displayImage = product.images && product.images.length > 0 ? product.images[0] : '';
@@ -162,7 +162,7 @@ function Cart() {
           </div>
 
           {/* Pricing Summary Pane (Right Column) */}
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in-up delay-200">
             
             {/* Promo Code card */}
             <div className="p-5 rounded-2xl glass border border-white/5 space-y-3">
@@ -240,7 +240,7 @@ function Cart() {
 
               <button
                 onClick={handleProceedToCheckout}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all text-center block"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm shadow-lg shadow-brand-primary/20 hover:brightness-110 active:scale-95 transition-all text-center block shimmer-btn"
               >
                 Proceed to Checkout 💳
               </button>

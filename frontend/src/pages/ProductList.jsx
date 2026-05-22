@@ -151,7 +151,7 @@ function ProductList() {
     <div className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
       
       {/* Back to Home Button */}
-      <div className="pt-4 mb-6">
+      <div className="pt-4 mb-6 animate-fade-in-up">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
@@ -161,7 +161,7 @@ function ProductList() {
       </div>
 
       {/* Dynamic Fandom Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden glass border border-white/5 p-6 md:p-8 lg:p-12 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 min-h-[180px] transition-all duration-700">
+      <div className="relative rounded-3xl overflow-hidden glass border border-white/5 p-6 md:p-8 lg:p-12 mb-8 flex flex-col md:flex-row justify-between items-center gap-6 min-h-[180px] transition-all duration-700 animate-fade-in-up delay-75">
         {/* Banner Background Image */}
         <div className="absolute inset-0 z-0 select-none pointer-events-none">
           <img 
@@ -202,7 +202,7 @@ function ProductList() {
       <div className="flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar Filters */}
-        <aside id="filters-sidebar" className="w-full lg:w-64 flex-shrink-0 glass rounded-3xl p-6 h-fit space-y-6 order-2 lg:order-1">
+        <aside id="filters-sidebar" className="w-full lg:w-64 flex-shrink-0 glass rounded-3xl p-6 h-fit space-y-6 order-2 lg:order-1 animate-fade-in-up delay-150">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-black text-slate-100 uppercase tracking-widest">Filters</h3>
             <button 
@@ -220,7 +220,7 @@ function ProductList() {
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Fandom</h4>
             <div className="space-y-2">
               {FANDOMS.map(f => (
-                <label key={f} className="flex items-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none">
+                <label key={f} className="flex items-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none transition-all duration-200 hover:translate-x-1">
                   <input
                     type="checkbox"
                     checked={selectedFandoms.includes(f)}
@@ -240,7 +240,7 @@ function ProductList() {
             <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Category</h4>
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {activeCategories.map(c => (
-                <label key={c} className="flex items-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none">
+                <label key={c} className="flex items-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none transition-all duration-200 hover:translate-x-1">
                   <input
                     type="checkbox"
                     checked={selectedCategories.includes(c)}
@@ -293,7 +293,7 @@ function ProductList() {
         </aside>
 
         {/* Product Grid */}
-        <div className="flex-1 space-y-6 order-1 lg:order-2">
+        <div className="flex-1 space-y-6 order-1 lg:order-2 animate-fade-in-up delay-200">
           <div className="flex justify-between items-center text-xs text-slate-400">
             <span>Found <b>{products.length}</b> magical items</span>
             {/* Quick scroll to filters on mobile */}
@@ -314,7 +314,7 @@ function ProductList() {
                 <div className="flex justify-center pt-2">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 6)}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer shimmer-btn"
                   >
                     Load More ✨
                   </button>
@@ -330,7 +330,7 @@ function ProductList() {
               </p>
               <button 
                 onClick={handleResetFilters}
-                className="mt-6 px-5 py-2 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-bold text-xs shadow-lg active:scale-95 transition-all"
+                className="mt-6 px-5 py-2 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-bold text-xs shadow-lg active:scale-95 transition-all shimmer-btn"
               >
                 Reset All Filters
               </button>

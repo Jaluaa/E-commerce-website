@@ -120,7 +120,7 @@ function ProductDetails() {
       <div className={`absolute top-0 left-1/3 w-[500px] h-[500px] bg-gradient-to-br ${theme.bgGlow} rounded-full blur-3xl opacity-50 -z-10 pointer-events-none`} />
       
       {/* Back to Home Button */}
-      <div className="pt-4 relative z-10">
+      <div className="pt-4 relative z-10 animate-fade-in-up">
         <Link 
           to="/" 
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-white/5 text-slate-300 hover:text-white text-xs font-bold transition-all shadow-md active:scale-95 cursor-pointer"
@@ -133,7 +133,7 @@ function ProductDetails() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         
         {/* Left Column: Image Gallery */}
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in-up delay-75">
           <div className="relative rounded-2xl overflow-hidden glass aspect-square bg-slate-900/40 border border-white/5">
             <img 
               src={activeImage} 
@@ -170,7 +170,7 @@ function ProductDetails() {
         </div>
 
         {/* Right Column: Metadata & Controls */}
-        <div className="flex flex-col justify-between">
+        <div className="flex flex-col justify-between animate-fade-in-up delay-150">
           <div className="space-y-6">
             
             {/* Category and Fandom Badges */}
@@ -261,7 +261,7 @@ function ProductDetails() {
             <button
               onClick={handleAddToCart}
               disabled={product.stock === 0}
-              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-sm font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent text-white text-sm font-bold shadow-lg shadow-brand-primary/10 hover:brightness-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all shimmer-btn"
             >
               {product.stock > 0 ? `Add to Cart` : 'Out of Stock'}
             </button>
@@ -273,7 +273,7 @@ function ProductDetails() {
 
       {/* Related Products Grid */}
       {relatedProducts.length > 0 && (
-        <section className="space-y-6 pt-6">
+        <section className="space-y-6 pt-6 animate-fade-in-up delay-200">
           <div>
             <h2 className="text-2xl font-black text-white tracking-wide">Related Merchandise</h2>
             <p className="text-xs text-slate-400 mt-1">Other products in the {product.fandom} fandom store</p>
@@ -288,7 +288,7 @@ function ProductDetails() {
       )}
 
       {/* Reviews Panel */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pt-6 animate-fade-in-up delay-300">
         
         {/* Left pane: Review statistics and submission */}
         <div className="lg:col-span-1 space-y-6">
@@ -351,7 +351,7 @@ function ProductDetails() {
 
             <button
               type="submit"
-              className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-bold text-xs shadow-md active:scale-95 transition-all"
+              className="w-full py-2 rounded-xl bg-brand-primary hover:bg-brand-accent text-white font-bold text-xs shadow-md active:scale-95 transition-all shimmer-btn"
             >
               Submit Review Feedback
             </button>
