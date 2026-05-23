@@ -17,6 +17,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"strings"
 )
 
 type RazorpayOrderRequest struct {
@@ -126,7 +127,7 @@ func CreateRazorpayOrder(c *gin.Context) {
 	// Read API Credentials from Env
 	keyID := os.Getenv("RAZORPAY_KEY_ID")
 	keySecret := os.Getenv("RAZORPAY_KEY_SECRET")
-	isMock := keyID == "" || keySecret == ""
+	isMock := keyID == "" || keySecret == "" || !strings.HasPrefix(keyID, "rzp_") || keyID == "YOUR_RAZORPAY_KEY_ID_HERE" || keySecret == "YOUR_RAZORPAY_KEY_SECRET_HERE"
 
 	// Amount in paise (1 INR = 100 paise)
 	amountInPaise := int(finalTotal * 100)
@@ -225,7 +226,7 @@ func VerifyRazorpayPayment(c *gin.Context) {
 
 	keyID := os.Getenv("RAZORPAY_KEY_ID")
 	keySecret := os.Getenv("RAZORPAY_KEY_SECRET")
-	isMock := keyID == "" || keySecret == ""
+	isMock := keyID == "" || keySecret == "" || keyID == "YOUR_RAZORPAY_KEY_ID_HERE" || keySecret == "YOUR_RAZORPAY_KEY_SECRET_HERE"
 
 	orderColl := getCollection("orders")
 
