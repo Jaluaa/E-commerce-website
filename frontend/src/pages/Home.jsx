@@ -184,7 +184,7 @@ const FANDOMS = [
     desc: 'Central Perk Mugs, Lobsters, and Decor',
     gradient: 'from-emerald-600/20 to-teal-950/40 border-emerald-500/30 hover:border-emerald-500/50',
     color: '#10b981',
-    bgImage: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?q=80&w=600&auto=format&fit=crop',
+    bgImage: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=600&auto=format&fit=crop',
     glowColor: 'group-hover:shadow-emerald-500/10'
   },
   { 
@@ -283,17 +283,17 @@ function Home() {
           </p>
 
           {/* Search bar inside hero */}
-          <form onSubmit={handleSearch} className="flex gap-2 max-w-md w-full mx-auto justify-center">
+          <form onSubmit={handleSearch} className="flex items-center gap-2 max-w-md w-full mx-auto justify-center">
             <input
               type="text"
               placeholder="Search wands, hoodies, mugs..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="flex-1 pl-5 pr-4 py-3 rounded-2xl bg-slate-900/80 border border-white/15 text-slate-200 text-sm focus:border-brand-primary focus:bg-slate-900 outline-hidden transition-all shadow-lg"
+              className="flex-1 h-12 pl-5 pr-4 rounded-2xl bg-slate-900/80 border border-white/15 text-slate-200 text-sm focus:border-brand-primary focus:bg-slate-900 outline-hidden transition-all shadow-lg"
             />
             <button 
               type="submit" 
-              className="px-6 py-3 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-brand-primary/20 shimmer-btn"
+              className="h-12 px-6 rounded-2xl bg-gradient-to-r from-brand-primary to-brand-accent text-white font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-brand-primary/20 shimmer-btn flex items-center justify-center whitespace-nowrap border border-transparent"
             >
               Search
             </button>
@@ -370,14 +370,14 @@ function Home() {
 
       {/* Featured / Trending items */}
       <section className="space-y-6 animate-fade-in-up delay-200">
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-3">
           <div>
             <h2 className="text-2xl font-black text-white tracking-wide">Featured Merchandise</h2>
             <p className="text-xs text-slate-400 mt-1">Hand-picked hot items from our premium catalog</p>
           </div>
           <Link 
             to="/products" 
-            className="text-xs font-bold text-brand-primary hover:text-brand-accent transition-colors flex items-center gap-1"
+            className="text-xs font-bold text-brand-primary hover:text-brand-accent transition-colors flex items-center gap-1 whitespace-nowrap"
           >
             View Full Collection <span className="text-sm">→</span>
           </Link>
