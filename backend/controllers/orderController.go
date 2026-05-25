@@ -46,11 +46,11 @@ func Checkout(c *gin.Context) {
 
 	for _, item := range input.Items {
 		var orderItem models.OrderItem
+		orderItem.ProductID = item.ProductID
+		
+		// Optional: if ProductID is a valid hex ObjectID, check stock and reduce
 		objId, err := primitive.ObjectIDFromHex(item.ProductID)
 		if err == nil {
-			orderItem.ProductID = objId
-			
-			// Optional: check stock and reduce
 			var product models.Product
 			errFind := productColl.FindOne(context.TODO(), bson.M{"_id": objId}).Decode(&product)
 			if errFind == nil {
@@ -64,9 +64,6 @@ func Checkout(c *gin.Context) {
 					bson.M{"$inc": bson.M{"stockQuantity": -item.Quantity}},
 				)
 			}
-		} else {
-			// Generate random ObjectID for client-side strings
-			orderItem.ProductID = primitive.NewObjectID()
 		}
 
 		orderItem.Quantity = item.Quantity

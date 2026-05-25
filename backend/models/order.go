@@ -16,9 +16,9 @@ type ShippingAddress struct {
 }
 
 type OrderItem struct {
-	ProductID primitive.ObjectID `bson:"productId" json:"productId"`
-	Quantity  int                `bson:"quantity" json:"quantity"`
-	Price     float64            `bson:"price" json:"price"` // price at the time of order
+	ProductID string  `bson:"productId" json:"productId"`
+	Quantity  int     `bson:"quantity" json:"quantity"`
+	Price     float64 `bson:"price" json:"price"` // price at the time of order
 }
 
 type Order struct {
